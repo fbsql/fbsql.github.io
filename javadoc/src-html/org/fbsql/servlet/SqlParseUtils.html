@@ -1,0 +1,760 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<main role="main">
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span><a id="line.1">/*</a>
+<span class="sourceLineNo">002</span><a id="line.2">MIT License</a>
+<span class="sourceLineNo">003</span><a id="line.3"></a>
+<span class="sourceLineNo">004</span><a id="line.4">Copyright (c) 2020 FBSQL Team</a>
+<span class="sourceLineNo">005</span><a id="line.5"></a>
+<span class="sourceLineNo">006</span><a id="line.6">Permission is hereby granted, free of charge, to any person obtaining a copy</a>
+<span class="sourceLineNo">007</span><a id="line.7">of this software and associated documentation files (the "Software"), to deal</a>
+<span class="sourceLineNo">008</span><a id="line.8">in the Software without restriction, including without limitation the rights</a>
+<span class="sourceLineNo">009</span><a id="line.9">to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</a>
+<span class="sourceLineNo">010</span><a id="line.10">copies of the Software, and to permit persons to whom the Software is</a>
+<span class="sourceLineNo">011</span><a id="line.11">furnished to do so, subject to the following conditions:</a>
+<span class="sourceLineNo">012</span><a id="line.12"></a>
+<span class="sourceLineNo">013</span><a id="line.13">The above copyright notice and this permission notice shall be included in all</a>
+<span class="sourceLineNo">014</span><a id="line.14">copies or substantial portions of the Software.</a>
+<span class="sourceLineNo">015</span><a id="line.15"></a>
+<span class="sourceLineNo">016</span><a id="line.16">THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</a>
+<span class="sourceLineNo">017</span><a id="line.17">IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</a>
+<span class="sourceLineNo">018</span><a id="line.18">FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</a>
+<span class="sourceLineNo">019</span><a id="line.19">AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</a>
+<span class="sourceLineNo">020</span><a id="line.20">LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</a>
+<span class="sourceLineNo">021</span><a id="line.21">OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</a>
+<span class="sourceLineNo">022</span><a id="line.22">SOFTWARE.</a>
+<span class="sourceLineNo">023</span><a id="line.23"></a>
+<span class="sourceLineNo">024</span><a id="line.24">Home:   https://fbsql.github.io</a>
+<span class="sourceLineNo">025</span><a id="line.25">E-Mail: fbsql.team@gmail.com</a>
+<span class="sourceLineNo">026</span><a id="line.26">*/</a>
+<span class="sourceLineNo">027</span><a id="line.27"></a>
+<span class="sourceLineNo">028</span><a id="line.28">package org.fbsql.servlet;</a>
+<span class="sourceLineNo">029</span><a id="line.29"></a>
+<span class="sourceLineNo">030</span><a id="line.30">import java.io.File;</a>
+<span class="sourceLineNo">031</span><a id="line.31">import java.io.IOException;</a>
+<span class="sourceLineNo">032</span><a id="line.32">import java.io.StringReader;</a>
+<span class="sourceLineNo">033</span><a id="line.33">import java.nio.file.Files;</a>
+<span class="sourceLineNo">034</span><a id="line.34">import java.nio.file.Path;</a>
+<span class="sourceLineNo">035</span><a id="line.35">import java.nio.file.Paths;</a>
+<span class="sourceLineNo">036</span><a id="line.36">import java.security.NoSuchAlgorithmException;</a>
+<span class="sourceLineNo">037</span><a id="line.37">import java.util.ArrayList;</a>
+<span class="sourceLineNo">038</span><a id="line.38">import java.util.LinkedHashMap;</a>
+<span class="sourceLineNo">039</span><a id="line.39">import java.util.List;</a>
+<span class="sourceLineNo">040</span><a id="line.40">import java.util.Locale;</a>
+<span class="sourceLineNo">041</span><a id="line.41">import java.util.Map;</a>
+<span class="sourceLineNo">042</span><a id="line.42"></a>
+<span class="sourceLineNo">043</span><a id="line.43">import javax.servlet.ServletConfig;</a>
+<span class="sourceLineNo">044</span><a id="line.44"></a>
+<span class="sourceLineNo">045</span><a id="line.45">import org.fbsql.antlr4.parser.ParseStmtConnectTo;</a>
+<span class="sourceLineNo">046</span><a id="line.46">import org.fbsql.antlr4.parser.ParseStmtConnectTo.StmtConnectTo;</a>
+<span class="sourceLineNo">047</span><a id="line.47">import org.fbsql.antlr4.parser.ParseStmtDeclareProcedure;</a>
+<span class="sourceLineNo">048</span><a id="line.48">import org.fbsql.antlr4.parser.ParseStmtDeclareProcedure.StmtDeclareProcedure;</a>
+<span class="sourceLineNo">049</span><a id="line.49">import org.fbsql.antlr4.parser.ParseStmtDeclareStatement;</a>
+<span class="sourceLineNo">050</span><a id="line.50">import org.fbsql.antlr4.parser.ParseStmtDeclareStatement.StmtDeclareStatement;</a>
+<span class="sourceLineNo">051</span><a id="line.51">import org.fbsql.antlr4.parser.ParseStmtInclude;</a>
+<span class="sourceLineNo">052</span><a id="line.52">import org.fbsql.antlr4.parser.ParseStmtScheduleAt;</a>
+<span class="sourceLineNo">053</span><a id="line.53">import org.fbsql.antlr4.parser.ParseStmtScheduleAt.StmtScheduleAt;</a>
+<span class="sourceLineNo">054</span><a id="line.54">import org.fbsql.antlr4.parser.ParseStmtSwitchTo;</a>
+<span class="sourceLineNo">055</span><a id="line.55">import org.fbsql.antlr4.parser.ParseStmtSwitchTo.StmtSwitchTo;</a>
+<span class="sourceLineNo">056</span><a id="line.56">import org.h2.util.ScriptReader;</a>
+<span class="sourceLineNo">057</span><a id="line.57">import org.springframework.jdbc.core.SqlParameter;</a>
+<span class="sourceLineNo">058</span><a id="line.58">import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;</a>
+<span class="sourceLineNo">059</span><a id="line.59">import org.springframework.jdbc.core.namedparam.NamedParameterUtils;</a>
+<span class="sourceLineNo">060</span><a id="line.60">import org.springframework.jdbc.core.namedparam.ParsedSql;</a>
+<span class="sourceLineNo">061</span><a id="line.61"></a>
+<span class="sourceLineNo">062</span><a id="line.62">/**</a>
+<span class="sourceLineNo">063</span><a id="line.63"> * Provides utility methods for parsing SQL scripts and statements.</a>
+<span class="sourceLineNo">064</span><a id="line.64"> * </a>
+<span class="sourceLineNo">065</span><a id="line.65"> * Various utility methods might used to parse SQL scripts or particular SQL statements.</a>
+<span class="sourceLineNo">066</span><a id="line.66"> * Supports syntax of all existing (February 2020) SQL standards. </a>
+<span class="sourceLineNo">067</span><a id="line.67">*/</a>
+<span class="sourceLineNo">068</span><a id="line.68">public class SqlParseUtils {</a>
+<span class="sourceLineNo">069</span><a id="line.69"></a>
+<span class="sourceLineNo">070</span><a id="line.70">        /**</a>
+<span class="sourceLineNo">071</span><a id="line.71">         * Special FBSQL statements that</a>
+<span class="sourceLineNo">072</span><a id="line.72">         * can be used only in «init.sql» script</a>
+<span class="sourceLineNo">073</span><a id="line.73">         */</a>
+<span class="sourceLineNo">074</span><a id="line.74">        public static final String SPECIAL_STATEMENT_CONNECT_TO        = canonizeSql("CONNECT TO");        // Connect to database instance (can be used only in «init.sql» script)</a>
+<span class="sourceLineNo">075</span><a id="line.75">        public static final String SPECIAL_STATEMENT_SWITCH_TO         = canonizeSql("SWITCH TO");         // Switch connection to database instance (can be used only in «init.sql» script)</a>
+<span class="sourceLineNo">076</span><a id="line.76">        public static final String SPECIAL_STATEMENT_DECLARE_PROCEDURE = canonizeSql("DECLARE PROCEDURE"); // Declare non native stored procedure written in one of JVM languages</a>
+<span class="sourceLineNo">077</span><a id="line.77">        public static final String SPECIAL_STATEMENT_SCHEDULE          = canonizeSql("SCHEDULE");          // Add scheduled stored procedure (can be used only in «init.sql» script)</a>
+<span class="sourceLineNo">078</span><a id="line.78">        public static final String SPECIAL_STATEMENT_DECLARE_STATEMENT = canonizeSql("DECLARE STATEMENT"); // Expose corresponding native SQL statement to frontend</a>
+<span class="sourceLineNo">079</span><a id="line.79">        public static final String SPECIAL_STATEMENT_INCLUDE           = canonizeSql("INCLUDE");           // Include script file(s) (can be used only in «init.sql» script)</a>
+<span class="sourceLineNo">080</span><a id="line.80">        public static final String SPECIAL_STATEMENT_CALL              = canonizeSql("CALL");              // CALL statement</a>
+<span class="sourceLineNo">081</span><a id="line.81"></a>
+<span class="sourceLineNo">082</span><a id="line.82">        private static final String INIT_SQL_FILE_EXT        = "init.sql";</a>
+<span class="sourceLineNo">083</span><a id="line.83">        /**</a>
+<span class="sourceLineNo">084</span><a id="line.84">         * SQL statement separator: «;»</a>
+<span class="sourceLineNo">085</span><a id="line.85">         */</a>
+<span class="sourceLineNo">086</span><a id="line.86">        private static final String STATEMENT_SEPARATOR      = ";";</a>
+<span class="sourceLineNo">087</span><a id="line.87">        /**</a>
+<span class="sourceLineNo">088</span><a id="line.88">         * Multiline line comment start: «/*»</a>
+<span class="sourceLineNo">089</span><a id="line.89">         */</a>
+<span class="sourceLineNo">090</span><a id="line.90">        private static final String MULTI_LINE_COMMENT_START = "/*";</a>
+<span class="sourceLineNo">091</span><a id="line.91"></a>
+<span class="sourceLineNo">092</span><a id="line.92">        /**</a>
+<span class="sourceLineNo">093</span><a id="line.93">         * Multiline comment stop: «*​/»</a>
+<span class="sourceLineNo">094</span><a id="line.94">         */</a>
+<span class="sourceLineNo">095</span><a id="line.95">        private static final String MULTI_LINE_COMMENT_STOP = "*/";</a>
+<span class="sourceLineNo">096</span><a id="line.96"></a>
+<span class="sourceLineNo">097</span><a id="line.97">        /**</a>
+<span class="sourceLineNo">098</span><a id="line.98">         * Single line comment start: «--»</a>
+<span class="sourceLineNo">099</span><a id="line.99">         */</a>
+<span class="sourceLineNo">100</span><a id="line.100">        private static final String SINGLE_LINE_COMMENT_START = "--";</a>
+<span class="sourceLineNo">101</span><a id="line.101"></a>
+<span class="sourceLineNo">102</span><a id="line.102">        /**</a>
+<span class="sourceLineNo">103</span><a id="line.103">         * Single line comment stop: (Caret return)</a>
+<span class="sourceLineNo">104</span><a id="line.104">         */</a>
+<span class="sourceLineNo">105</span><a id="line.105">        private static final String SINGLE_LINE_COMMENT_STOP = "\n";</a>
+<span class="sourceLineNo">106</span><a id="line.106"></a>
+<span class="sourceLineNo">107</span><a id="line.107">        /**</a>
+<span class="sourceLineNo">108</span><a id="line.108">         * Single quote: «'»</a>
+<span class="sourceLineNo">109</span><a id="line.109">         */</a>
+<span class="sourceLineNo">110</span><a id="line.110">        private static final char Q1 = '\'';</a>
+<span class="sourceLineNo">111</span><a id="line.111"></a>
+<span class="sourceLineNo">112</span><a id="line.112">        /**</a>
+<span class="sourceLineNo">113</span><a id="line.113">         * Double quote: «"»</a>
+<span class="sourceLineNo">114</span><a id="line.114">         */</a>
+<span class="sourceLineNo">115</span><a id="line.115">        private static final char Q2 = '"';</a>
+<span class="sourceLineNo">116</span><a id="line.116"></a>
+<span class="sourceLineNo">117</span><a id="line.117">        /**</a>
+<span class="sourceLineNo">118</span><a id="line.118">         * Returns the index within  SQL  string of the first occurrence of</a>
+<span class="sourceLineNo">119</span><a id="line.119">         * the specified token.</a>
+<span class="sourceLineNo">120</span><a id="line.120">         * If a token with value &lt;code&gt;token&lt;/code&gt; occurs in the character</a>
+<span class="sourceLineNo">121</span><a id="line.121">         * sequence represented by  SQL  string  &lt;code&gt;sql&lt;/code&gt;, then the</a>
+<span class="sourceLineNo">122</span><a id="line.122">         * index of the first such occurrence is returned.</a>
+<span class="sourceLineNo">123</span><a id="line.123">         * This index is the smallest value &lt;i&gt;i&lt;/i&gt; such that:</a>
+<span class="sourceLineNo">124</span><a id="line.124">         * &lt;blockquote&gt;&lt;pre&gt;</a>
+<span class="sourceLineNo">125</span><a id="line.125">         * sql.charAt(&lt;i&gt;i&lt;/i&gt;) == token[0]</a>
+<span class="sourceLineNo">126</span><a id="line.126">         * &lt;/pre&gt;&lt;/blockquote&gt;</a>
+<span class="sourceLineNo">127</span><a id="line.127">         * is true.</a>
+<span class="sourceLineNo">128</span><a id="line.128">         *</a>
+<span class="sourceLineNo">129</span><a id="line.129">         * @param   sql a SQL string.</a>
+<span class="sourceLineNo">130</span><a id="line.130">         * @param   token to search</a>
+<span class="sourceLineNo">131</span><a id="line.131">         * @return  the index of the first occurrence of the token in the</a>
+<span class="sourceLineNo">132</span><a id="line.132">         *          SQL string, or</a>
+<span class="sourceLineNo">133</span><a id="line.133">         *          &lt;code&gt;-1&lt;/code&gt; if the token does not occur.</a>
+<span class="sourceLineNo">134</span><a id="line.134">         */</a>
+<span class="sourceLineNo">135</span><a id="line.135">        public static int indexOf(String sql, String token) {</a>
+<span class="sourceLineNo">136</span><a id="line.136">                boolean inQ1     = false; // in single quotes flag</a>
+<span class="sourceLineNo">137</span><a id="line.137">                int     inQ1_len = 0;     // counter to count characters inside single quotes</a>
+<span class="sourceLineNo">138</span><a id="line.138">                //</a>
+<span class="sourceLineNo">139</span><a id="line.139">                boolean inQ2     = false; // in double quotes flag</a>
+<span class="sourceLineNo">140</span><a id="line.140">                int     inQ2_len = 0;     // counter to count characters inside double quotes</a>
+<span class="sourceLineNo">141</span><a id="line.141">                //</a>
+<span class="sourceLineNo">142</span><a id="line.142">                int savedTokenOffset = -1;</a>
+<span class="sourceLineNo">143</span><a id="line.143">                int k                = 0; // to iterate inside token</a>
+<span class="sourceLineNo">144</span><a id="line.144">                //</a>
+<span class="sourceLineNo">145</span><a id="line.145">                for (int i = 0; i &lt; sql.length(); i++) {</a>
+<span class="sourceLineNo">146</span><a id="line.146">                        char c = sql.charAt(i);</a>
+<span class="sourceLineNo">147</span><a id="line.147">                        if (inQ1) {</a>
+<span class="sourceLineNo">148</span><a id="line.148">                                if (c == Q1) {</a>
+<span class="sourceLineNo">149</span><a id="line.149">                                        if ((i != 0 &amp;&amp; sql.charAt(i - 1) != Q1) || inQ1_len == 0) { // reset single quotes</a>
+<span class="sourceLineNo">150</span><a id="line.150">                                                inQ1     = false;</a>
+<span class="sourceLineNo">151</span><a id="line.151">                                                inQ1_len = 0;</a>
+<span class="sourceLineNo">152</span><a id="line.152">                                        }</a>
+<span class="sourceLineNo">153</span><a id="line.153">                                } else</a>
+<span class="sourceLineNo">154</span><a id="line.154">                                        inQ1_len++;</a>
+<span class="sourceLineNo">155</span><a id="line.155">                        } else if (inQ2) {</a>
+<span class="sourceLineNo">156</span><a id="line.156">                                if (c == Q2) {</a>
+<span class="sourceLineNo">157</span><a id="line.157">                                        if ((i != 0 &amp;&amp; sql.charAt(i - 1) != Q2) || inQ2_len == 0) { // reset double quotes</a>
+<span class="sourceLineNo">158</span><a id="line.158">                                                inQ2     = false;</a>
+<span class="sourceLineNo">159</span><a id="line.159">                                                inQ2_len = 0;</a>
+<span class="sourceLineNo">160</span><a id="line.160">                                        }</a>
+<span class="sourceLineNo">161</span><a id="line.161">                                } else</a>
+<span class="sourceLineNo">162</span><a id="line.162">                                        inQ2_len++;</a>
+<span class="sourceLineNo">163</span><a id="line.163">                        } else {</a>
+<span class="sourceLineNo">164</span><a id="line.164">                                if (c == Q1)</a>
+<span class="sourceLineNo">165</span><a id="line.165">                                        inQ1 = true;</a>
+<span class="sourceLineNo">166</span><a id="line.166">                                else if (c == Q2)</a>
+<span class="sourceLineNo">167</span><a id="line.167">                                        inQ2 = true;</a>
+<span class="sourceLineNo">168</span><a id="line.168">                                else {</a>
+<span class="sourceLineNo">169</span><a id="line.169">                                        char tc = token.charAt(k);</a>
+<span class="sourceLineNo">170</span><a id="line.170">                                        if (c == tc) {</a>
+<span class="sourceLineNo">171</span><a id="line.171">                                                if (k == 0) {</a>
+<span class="sourceLineNo">172</span><a id="line.172">                                                        savedTokenOffset = i;</a>
+<span class="sourceLineNo">173</span><a id="line.173">                                                        if (k == token.length() - 1)</a>
+<span class="sourceLineNo">174</span><a id="line.174">                                                                return savedTokenOffset;</a>
+<span class="sourceLineNo">175</span><a id="line.175">                                                        else</a>
+<span class="sourceLineNo">176</span><a id="line.176">                                                                k++;</a>
+<span class="sourceLineNo">177</span><a id="line.177">                                                } else if (k == token.length() - 1)</a>
+<span class="sourceLineNo">178</span><a id="line.178">                                                        return savedTokenOffset;</a>
+<span class="sourceLineNo">179</span><a id="line.179">                                                else</a>
+<span class="sourceLineNo">180</span><a id="line.180">                                                        k++;</a>
+<span class="sourceLineNo">181</span><a id="line.181">                                        } else {</a>
+<span class="sourceLineNo">182</span><a id="line.182">                                                savedTokenOffset = -1;</a>
+<span class="sourceLineNo">183</span><a id="line.183">                                                k                = 0;</a>
+<span class="sourceLineNo">184</span><a id="line.184">                                        }</a>
+<span class="sourceLineNo">185</span><a id="line.185">                                }</a>
+<span class="sourceLineNo">186</span><a id="line.186">                        }</a>
+<span class="sourceLineNo">187</span><a id="line.187">                }</a>
+<span class="sourceLineNo">188</span><a id="line.188">                if (k == token.length())</a>
+<span class="sourceLineNo">189</span><a id="line.189">                        return savedTokenOffset;</a>
+<span class="sourceLineNo">190</span><a id="line.190">                return -1;</a>
+<span class="sourceLineNo">191</span><a id="line.191">        }</a>
+<span class="sourceLineNo">192</span><a id="line.192"></a>
+<span class="sourceLineNo">193</span><a id="line.193">        /**</a>
+<span class="sourceLineNo">194</span><a id="line.194">         * Parse CONNECT statement</a>
+<span class="sourceLineNo">195</span><a id="line.195">         *</a>
+<span class="sourceLineNo">196</span><a id="line.196">         * @param sql  - CONNECT statement</a>
+<span class="sourceLineNo">197</span><a id="line.197">         * @param info - ConnectionInfo Transfer object</a>
+<span class="sourceLineNo">198</span><a id="line.198">         */</a>
+<span class="sourceLineNo">199</span><a id="line.199">        public static StmtConnectTo parseConnectStatement(ServletConfig servletConfig, String sql) {</a>
+<span class="sourceLineNo">200</span><a id="line.200">                sql = stripComments(sql).trim();</a>
+<span class="sourceLineNo">201</span><a id="line.201">                sql = sql.replace('\n', ' ');</a>
+<span class="sourceLineNo">202</span><a id="line.202">                sql = sql.replace('\r', ' ');</a>
+<span class="sourceLineNo">203</span><a id="line.203">                sql = processStatement(sql);</a>
+<span class="sourceLineNo">204</span><a id="line.204"></a>
+<span class="sourceLineNo">205</span><a id="line.205">                return new ParseStmtConnectTo().parse(servletConfig, sql);</a>
+<span class="sourceLineNo">206</span><a id="line.206">        }</a>
+<span class="sourceLineNo">207</span><a id="line.207"></a>
+<span class="sourceLineNo">208</span><a id="line.208">        /**</a>
+<span class="sourceLineNo">209</span><a id="line.209">         * Parse DECLARE PROCEDURE statement</a>
+<span class="sourceLineNo">210</span><a id="line.210">         *</a>
+<span class="sourceLineNo">211</span><a id="line.211">         * @param sql           - DECLARE PROCEDURE statement</a>
+<span class="sourceLineNo">212</span><a id="line.212">         * @param proceduresMap - procedures Map for specific stored procedure name</a>
+<span class="sourceLineNo">213</span><a id="line.213">         */</a>
+<span class="sourceLineNo">214</span><a id="line.214">        public static void parseDeclareProcedureStatement(ServletConfig servletConfig, String sql, Map&lt;String /* stored procedure name */, NonNativeProcedure&gt; proceduresMap) {</a>
+<span class="sourceLineNo">215</span><a id="line.215">                sql = stripComments(sql).trim();</a>
+<span class="sourceLineNo">216</span><a id="line.216">                sql = sql.replace('\n', ' ');</a>
+<span class="sourceLineNo">217</span><a id="line.217">                sql = sql.replace('\r', ' ');</a>
+<span class="sourceLineNo">218</span><a id="line.218">                sql = processStatement(sql);</a>
+<span class="sourceLineNo">219</span><a id="line.219"></a>
+<span class="sourceLineNo">220</span><a id="line.220">                StmtDeclareProcedure stmtDeclareProcedure = new ParseStmtDeclareProcedure().parse(sql);</a>
+<span class="sourceLineNo">221</span><a id="line.221">                stmtDeclareProcedure.procedure = stmtDeclareProcedure.procedure.toUpperCase(Locale.ENGLISH);</a>
+<span class="sourceLineNo">222</span><a id="line.222"></a>
+<span class="sourceLineNo">223</span><a id="line.223">                String             storedProcedureName = stmtDeclareProcedure.procedure.toUpperCase(Locale.ENGLISH);</a>
+<span class="sourceLineNo">224</span><a id="line.224">                NonNativeProcedure nonNativeProcedure  = stmtDeclareProcedure.nonNativeProcedure;                   // &lt;class name&gt; + &lt;::&gt; + &lt;method name&gt;</a>
+<span class="sourceLineNo">225</span><a id="line.225"></a>
+<span class="sourceLineNo">226</span><a id="line.226">                proceduresMap.put(storedProcedureName, nonNativeProcedure);</a>
+<span class="sourceLineNo">227</span><a id="line.227">        }</a>
+<span class="sourceLineNo">228</span><a id="line.228"></a>
+<span class="sourceLineNo">229</span><a id="line.229">        /**</a>
+<span class="sourceLineNo">230</span><a id="line.230">         * Parse EXPOSE statement</a>
+<span class="sourceLineNo">231</span><a id="line.231">         *</a>
+<span class="sourceLineNo">232</span><a id="line.232">         * @param sql - EXPOSE statement</a>
+<span class="sourceLineNo">233</span><a id="line.233">         * @throws NoSuchAlgorithmException </a>
+<span class="sourceLineNo">234</span><a id="line.234">         */</a>
+<span class="sourceLineNo">235</span><a id="line.235">        public static StmtDeclareStatement parseExposeStatement(ServletConfig servletConfig, String sql) {</a>
+<span class="sourceLineNo">236</span><a id="line.236">                sql = stripComments(sql).trim();</a>
+<span class="sourceLineNo">237</span><a id="line.237">                sql = sql.replace('\n', ' ');</a>
+<span class="sourceLineNo">238</span><a id="line.238">                sql = sql.replace('\r', ' ');</a>
+<span class="sourceLineNo">239</span><a id="line.239">                sql = processStatement(sql);</a>
+<span class="sourceLineNo">240</span><a id="line.240"></a>
+<span class="sourceLineNo">241</span><a id="line.241">                ParseStmtDeclareStatement parseStmtDeclareStatement = new ParseStmtDeclareStatement();</a>
+<span class="sourceLineNo">242</span><a id="line.242">                StmtDeclareStatement      stmtDeclareStatement      = parseStmtDeclareStatement.parse(sql);</a>
+<span class="sourceLineNo">243</span><a id="line.243"></a>
+<span class="sourceLineNo">244</span><a id="line.244">                stmtDeclareStatement.statement = processStatement(stmtDeclareStatement.statement);</a>
+<span class="sourceLineNo">245</span><a id="line.245">                return stmtDeclareStatement;</a>
+<span class="sourceLineNo">246</span><a id="line.246">        }</a>
+<span class="sourceLineNo">247</span><a id="line.247"></a>
+<span class="sourceLineNo">248</span><a id="line.248">        /**</a>
+<span class="sourceLineNo">249</span><a id="line.249">         * Parse SCHEDULE statement</a>
+<span class="sourceLineNo">250</span><a id="line.250">         *</a>
+<span class="sourceLineNo">251</span><a id="line.251">         * @param sql           - SCHEDULE statement</a>
+<span class="sourceLineNo">252</span><a id="line.252">         * @param schedulersMap - Schedulers Map for specific SQL stored procedures</a>
+<span class="sourceLineNo">253</span><a id="line.253">         */</a>
+<span class="sourceLineNo">254</span><a id="line.254">        public static void parseScheduleStatement(ServletConfig servletConfig, String sql, Map&lt;String /* Cron expression */, List&lt;String /* Scheduled stored procedure name */ &gt;&gt; schedulersMap) {</a>
+<span class="sourceLineNo">255</span><a id="line.255">                sql = stripComments(sql).trim();</a>
+<span class="sourceLineNo">256</span><a id="line.256">                sql = sql.replace('\n', ' ');</a>
+<span class="sourceLineNo">257</span><a id="line.257">                sql = sql.replace('\r', ' ');</a>
+<span class="sourceLineNo">258</span><a id="line.258">                sql = processStatement(sql);</a>
+<span class="sourceLineNo">259</span><a id="line.259"></a>
+<span class="sourceLineNo">260</span><a id="line.260">                StmtScheduleAt scheduleAt          = new ParseStmtScheduleAt().parse(sql);</a>
+<span class="sourceLineNo">261</span><a id="line.261">                String         storedProcedureName = scheduleAt.procedure;</a>
+<span class="sourceLineNo">262</span><a id="line.262">                String         cronExpression      = scheduleAt.cronExpression;</a>
+<span class="sourceLineNo">263</span><a id="line.263"></a>
+<span class="sourceLineNo">264</span><a id="line.264">                List&lt;String /* Scheduled stored procedure name */&gt; sqlStatementNames = schedulersMap.get(cronExpression);</a>
+<span class="sourceLineNo">265</span><a id="line.265">                if (sqlStatementNames == null) {</a>
+<span class="sourceLineNo">266</span><a id="line.266">                        sqlStatementNames = new ArrayList&lt;&gt;();</a>
+<span class="sourceLineNo">267</span><a id="line.267">                        schedulersMap.put(cronExpression, sqlStatementNames);</a>
+<span class="sourceLineNo">268</span><a id="line.268">                }</a>
+<span class="sourceLineNo">269</span><a id="line.269">                sqlStatementNames.add(storedProcedureName);</a>
+<span class="sourceLineNo">270</span><a id="line.270">        }</a>
+<span class="sourceLineNo">271</span><a id="line.271"></a>
+<span class="sourceLineNo">272</span><a id="line.272">        /**</a>
+<span class="sourceLineNo">273</span><a id="line.273">         * Extract particular clause value from SQL statement</a>
+<span class="sourceLineNo">274</span><a id="line.274">         * </a>
+<span class="sourceLineNo">275</span><a id="line.275">         * @param sql    - source SQL statement (trimmed)</a>
+<span class="sourceLineNo">276</span><a id="line.276">         * @param clause - clause to search (trimmed)</a>
+<span class="sourceLineNo">277</span><a id="line.277">         * @return       - clause value</a>
+<span class="sourceLineNo">278</span><a id="line.278">         */</a>
+<span class="sourceLineNo">279</span><a id="line.279">        static List&lt;Object&gt; extractClauseAsList(ServletConfig servletConfig, String sql, String clause) {</a>
+<span class="sourceLineNo">280</span><a id="line.280">                String s = extractClause(servletConfig, sql, clause);</a>
+<span class="sourceLineNo">281</span><a id="line.281">                if (s == null)</a>
+<span class="sourceLineNo">282</span><a id="line.282">                        return null;</a>
+<span class="sourceLineNo">283</span><a id="line.283">                String[]     arr    = s.split(",");</a>
+<span class="sourceLineNo">284</span><a id="line.284">                List&lt;Object&gt; values = new ArrayList&lt;&gt;(arr.length);</a>
+<span class="sourceLineNo">285</span><a id="line.285">                for (int i = 0; i &lt; arr.length; i++) {</a>
+<span class="sourceLineNo">286</span><a id="line.286">                        String val = arr[i].trim();</a>
+<span class="sourceLineNo">287</span><a id="line.287">                        if (val.isEmpty())</a>
+<span class="sourceLineNo">288</span><a id="line.288">                                values.add(null);</a>
+<span class="sourceLineNo">289</span><a id="line.289">                        else if (val.startsWith("'") || val.startsWith("\""))</a>
+<span class="sourceLineNo">290</span><a id="line.290">                                values.add(val.substring(1, val.length() - 1));</a>
+<span class="sourceLineNo">291</span><a id="line.291">                        else if (val.toLowerCase(Locale.ENGLISH).equals("null"))</a>
+<span class="sourceLineNo">292</span><a id="line.292">                                values.add(null);</a>
+<span class="sourceLineNo">293</span><a id="line.293">                        else if (val.toLowerCase(Locale.ENGLISH).equals("true"))</a>
+<span class="sourceLineNo">294</span><a id="line.294">                                values.add(true);</a>
+<span class="sourceLineNo">295</span><a id="line.295">                        else if (val.toLowerCase(Locale.ENGLISH).equals("false"))</a>
+<span class="sourceLineNo">296</span><a id="line.296">                                values.add(false);</a>
+<span class="sourceLineNo">297</span><a id="line.297">                        else if (val.charAt(0) == '-' || Character.isDigit(val.charAt(0)))</a>
+<span class="sourceLineNo">298</span><a id="line.298">                                values.add(Double.parseDouble(val));</a>
+<span class="sourceLineNo">299</span><a id="line.299">                        else</a>
+<span class="sourceLineNo">300</span><a id="line.300">                                values.add(val);</a>
+<span class="sourceLineNo">301</span><a id="line.301">                }</a>
+<span class="sourceLineNo">302</span><a id="line.302">                return values;</a>
+<span class="sourceLineNo">303</span><a id="line.303">        }</a>
+<span class="sourceLineNo">304</span><a id="line.304"></a>
+<span class="sourceLineNo">305</span><a id="line.305">        /**</a>
+<span class="sourceLineNo">306</span><a id="line.306">         * Extract particular clause value from SQL statement</a>
+<span class="sourceLineNo">307</span><a id="line.307">         * </a>
+<span class="sourceLineNo">308</span><a id="line.308">         * @param sql    - source SQL statement (trimmed)</a>
+<span class="sourceLineNo">309</span><a id="line.309">         * @param clause - clause to search (trimmed)</a>
+<span class="sourceLineNo">310</span><a id="line.310">         * @return       - clause value</a>
+<span class="sourceLineNo">311</span><a id="line.311">         */</a>
+<span class="sourceLineNo">312</span><a id="line.312">        static List&lt;String&gt; extractClauseAsListOfStrings(ServletConfig servletConfig, String sql, String clause) {</a>
+<span class="sourceLineNo">313</span><a id="line.313">                String s = extractClause(servletConfig, sql, clause);</a>
+<span class="sourceLineNo">314</span><a id="line.314">                if (s == null)</a>
+<span class="sourceLineNo">315</span><a id="line.315">                        return null;</a>
+<span class="sourceLineNo">316</span><a id="line.316">                List&lt;Object&gt; values    = extractClauseAsList(servletConfig, sql, clause);</a>
+<span class="sourceLineNo">317</span><a id="line.317">                List&lt;String&gt; strValues = new ArrayList&lt;&gt;(values.size());</a>
+<span class="sourceLineNo">318</span><a id="line.318">                for (int i = 0; i &lt; values.size(); i++) {</a>
+<span class="sourceLineNo">319</span><a id="line.319">                        Object val = values.get(i);</a>
+<span class="sourceLineNo">320</span><a id="line.320">                        if (val instanceof String) {</a>
+<span class="sourceLineNo">321</span><a id="line.321">                                String v = (String) val;</a>
+<span class="sourceLineNo">322</span><a id="line.322">                                if (!v.isEmpty())</a>
+<span class="sourceLineNo">323</span><a id="line.323">                                        strValues.add(v);</a>
+<span class="sourceLineNo">324</span><a id="line.324">                        }</a>
+<span class="sourceLineNo">325</span><a id="line.325">                }</a>
+<span class="sourceLineNo">326</span><a id="line.326">                return strValues;</a>
+<span class="sourceLineNo">327</span><a id="line.327">        }</a>
+<span class="sourceLineNo">328</span><a id="line.328"></a>
+<span class="sourceLineNo">329</span><a id="line.329">        /**</a>
+<span class="sourceLineNo">330</span><a id="line.330">         * Extract particular clause value from SQL statement</a>
+<span class="sourceLineNo">331</span><a id="line.331">         * </a>
+<span class="sourceLineNo">332</span><a id="line.332">         * @param sql    - source SQL statement (trimmed)</a>
+<span class="sourceLineNo">333</span><a id="line.333">         * @param clause - clause to search (trimmed)</a>
+<span class="sourceLineNo">334</span><a id="line.334">         * @return       - clause value</a>
+<span class="sourceLineNo">335</span><a id="line.335">         */</a>
+<span class="sourceLineNo">336</span><a id="line.336">        public static String extractClauseAsString(ServletConfig servletConfig, String sql, String clause) {</a>
+<span class="sourceLineNo">337</span><a id="line.337">                String s = extractClause(servletConfig, sql, clause);</a>
+<span class="sourceLineNo">338</span><a id="line.338">                if (s == null)</a>
+<span class="sourceLineNo">339</span><a id="line.339">                        return null;</a>
+<span class="sourceLineNo">340</span><a id="line.340">                return s;</a>
+<span class="sourceLineNo">341</span><a id="line.341">        }</a>
+<span class="sourceLineNo">342</span><a id="line.342"></a>
+<span class="sourceLineNo">343</span><a id="line.343">        /**</a>
+<span class="sourceLineNo">344</span><a id="line.344">         * Extract particular clause value from SQL statement</a>
+<span class="sourceLineNo">345</span><a id="line.345">         * </a>
+<span class="sourceLineNo">346</span><a id="line.346">         * @param sql    - source SQL statement (trimmed)</a>
+<span class="sourceLineNo">347</span><a id="line.347">         * @param clause - clause to search (trimmed)</a>
+<span class="sourceLineNo">348</span><a id="line.348">         * @return       - clause value</a>
+<span class="sourceLineNo">349</span><a id="line.349">         */</a>
+<span class="sourceLineNo">350</span><a id="line.350">        static Integer extractClauseAsInt(ServletConfig servletConfig, String sql, String clause) {</a>
+<span class="sourceLineNo">351</span><a id="line.351">                String s = extractClause(servletConfig, sql, clause);</a>
+<span class="sourceLineNo">352</span><a id="line.352">                if (s == null)</a>
+<span class="sourceLineNo">353</span><a id="line.353">                        return null;</a>
+<span class="sourceLineNo">354</span><a id="line.354">                return Integer.parseInt(s);</a>
+<span class="sourceLineNo">355</span><a id="line.355">        }</a>
+<span class="sourceLineNo">356</span><a id="line.356"></a>
+<span class="sourceLineNo">357</span><a id="line.357">        /**</a>
+<span class="sourceLineNo">358</span><a id="line.358">         * Extract particular clause value from SQL statement</a>
+<span class="sourceLineNo">359</span><a id="line.359">         * </a>
+<span class="sourceLineNo">360</span><a id="line.360">         * @param sql    - source SQL statement (trimmed)</a>
+<span class="sourceLineNo">361</span><a id="line.361">         * @param clause - clause to search (trimmed)</a>
+<span class="sourceLineNo">362</span><a id="line.362">         * @return       - clause value</a>
+<span class="sourceLineNo">363</span><a id="line.363">         */</a>
+<span class="sourceLineNo">364</span><a id="line.364">        static boolean extractClauseAsBoolean(ServletConfig servletConfig, String sql, String clause) {</a>
+<span class="sourceLineNo">365</span><a id="line.365">                String s = extractClause(servletConfig, sql, clause);</a>
+<span class="sourceLineNo">366</span><a id="line.366">                if (s == null)</a>
+<span class="sourceLineNo">367</span><a id="line.367">                        return false;</a>
+<span class="sourceLineNo">368</span><a id="line.368">                return Boolean.parseBoolean(s);</a>
+<span class="sourceLineNo">369</span><a id="line.369">        }</a>
+<span class="sourceLineNo">370</span><a id="line.370"></a>
+<span class="sourceLineNo">371</span><a id="line.371">        /**</a>
+<span class="sourceLineNo">372</span><a id="line.372">         * Extract particular clause value from SQL statement</a>
+<span class="sourceLineNo">373</span><a id="line.373">         * </a>
+<span class="sourceLineNo">374</span><a id="line.374">         * @param sql    - source SQL statement (trimmed)</a>
+<span class="sourceLineNo">375</span><a id="line.375">         * @param clause - clause to search (trimmed)</a>
+<span class="sourceLineNo">376</span><a id="line.376">         * @return       - clause value</a>
+<span class="sourceLineNo">377</span><a id="line.377">         */</a>
+<span class="sourceLineNo">378</span><a id="line.378">        private static String extractClause(ServletConfig servletConfig, String sql, String clause) {</a>
+<span class="sourceLineNo">379</span><a id="line.379">                String upperSql    = sql.toUpperCase(Locale.ENGLISH);</a>
+<span class="sourceLineNo">380</span><a id="line.380">                String upperClause = clause.toUpperCase(Locale.ENGLISH);</a>
+<span class="sourceLineNo">381</span><a id="line.381">                while (true) {</a>
+<span class="sourceLineNo">382</span><a id="line.382">                        int pos = indexOf(upperSql, upperClause);</a>
+<span class="sourceLineNo">383</span><a id="line.383">                        if (pos == -1) {</a>
+<span class="sourceLineNo">384</span><a id="line.384">                                if (servletConfig == null)</a>
+<span class="sourceLineNo">385</span><a id="line.385">                                        return null;</a>
+<span class="sourceLineNo">386</span><a id="line.386">                                String value = servletConfig.getInitParameter(upperClause);</a>
+<span class="sourceLineNo">387</span><a id="line.387">                                if (value == null || value.trim().isEmpty())</a>
+<span class="sourceLineNo">388</span><a id="line.388">                                        return null;</a>
+<span class="sourceLineNo">389</span><a id="line.389">                                return value;</a>
+<span class="sourceLineNo">390</span><a id="line.390">                        }</a>
+<span class="sourceLineNo">391</span><a id="line.391"></a>
+<span class="sourceLineNo">392</span><a id="line.392">                        if (pos != 0) {</a>
+<span class="sourceLineNo">393</span><a id="line.393">                                char prevChar = sql.charAt(pos - 1);</a>
+<span class="sourceLineNo">394</span><a id="line.394">                                if (!(prevChar == ' ' || prevChar == '\t' || prevChar == '/' || prevChar == '\'' || prevChar == '"' || prevChar == ')')) { // previous clause must be ended</a>
+<span class="sourceLineNo">395</span><a id="line.395">                                        sql      = sql.substring(pos + 1);</a>
+<span class="sourceLineNo">396</span><a id="line.396">                                        upperSql = upperSql.substring(pos + 1);</a>
+<span class="sourceLineNo">397</span><a id="line.397">                                        continue;</a>
+<span class="sourceLineNo">398</span><a id="line.398">                                }</a>
+<span class="sourceLineNo">399</span><a id="line.399">                        }</a>
+<span class="sourceLineNo">400</span><a id="line.400"></a>
+<span class="sourceLineNo">401</span><a id="line.401">                        int nextCharPos = pos + clause.length();</a>
+<span class="sourceLineNo">402</span><a id="line.402">                        if (nextCharPos &lt;= sql.length() - 1) {</a>
+<span class="sourceLineNo">403</span><a id="line.403">                                char nextChar = sql.charAt(nextCharPos);</a>
+<span class="sourceLineNo">404</span><a id="line.404">                                if (!(nextChar == ' ' || nextChar == '\t' || nextChar == '/' || nextChar == '\'' || nextChar == '"' || nextChar == '(')) { // next clause must be ended</a>
+<span class="sourceLineNo">405</span><a id="line.405">                                        sql      = sql.substring(pos + 1);</a>
+<span class="sourceLineNo">406</span><a id="line.406">                                        upperSql = upperSql.substring(pos + 1);</a>
+<span class="sourceLineNo">407</span><a id="line.407">                                        continue;</a>
+<span class="sourceLineNo">408</span><a id="line.408">                                }</a>
+<span class="sourceLineNo">409</span><a id="line.409">                        }</a>
+<span class="sourceLineNo">410</span><a id="line.410"></a>
+<span class="sourceLineNo">411</span><a id="line.411">                        String value = sql.substring(pos + clause.length()).trim();</a>
+<span class="sourceLineNo">412</span><a id="line.412">                        char   quote = value.charAt(0);                            // get single «'» or double «"» quote</a>
+<span class="sourceLineNo">413</span><a id="line.413">                        if (quote == Q1 || quote == Q2) { // string</a>
+<span class="sourceLineNo">414</span><a id="line.414">                                pos = value.indexOf(quote, 1);</a>
+<span class="sourceLineNo">415</span><a id="line.415">                                return value.substring(1, pos).trim();</a>
+<span class="sourceLineNo">416</span><a id="line.416">                        } else if (quote == '(') { // list</a>
+<span class="sourceLineNo">417</span><a id="line.417">                                pos = value.indexOf(')', 1);</a>
+<span class="sourceLineNo">418</span><a id="line.418">                                return value.substring(1, pos).trim();</a>
+<span class="sourceLineNo">419</span><a id="line.419">                        } else { // number</a>
+<span class="sourceLineNo">420</span><a id="line.420">                                int posBlank = pos = value.indexOf(' ');</a>
+<span class="sourceLineNo">421</span><a id="line.421">                                int posTab   = value.indexOf('\t');</a>
+<span class="sourceLineNo">422</span><a id="line.422">                                if (posBlank == -1 &amp;&amp; posTab != -1)</a>
+<span class="sourceLineNo">423</span><a id="line.423">                                        pos = posTab;</a>
+<span class="sourceLineNo">424</span><a id="line.424">                                else if (posBlank != -1 &amp;&amp; posTab == -1)</a>
+<span class="sourceLineNo">425</span><a id="line.425">                                        pos = posBlank;</a>
+<span class="sourceLineNo">426</span><a id="line.426">                                else if (posBlank != -1 &amp;&amp; posTab != -1)</a>
+<span class="sourceLineNo">427</span><a id="line.427">                                        pos = Math.min(posBlank, posTab);</a>
+<span class="sourceLineNo">428</span><a id="line.428">                                else</a>
+<span class="sourceLineNo">429</span><a id="line.429">                                        pos = value.length();</a>
+<span class="sourceLineNo">430</span><a id="line.430">                                return value.substring(0, pos).trim();</a>
+<span class="sourceLineNo">431</span><a id="line.431">                        }</a>
+<span class="sourceLineNo">432</span><a id="line.432">                }</a>
+<span class="sourceLineNo">433</span><a id="line.433">        }</a>
+<span class="sourceLineNo">434</span><a id="line.434"></a>
+<span class="sourceLineNo">435</span><a id="line.435">        /**</a>
+<span class="sourceLineNo">436</span><a id="line.436">         * Remove the comments from SQL statement, if exists.</a>
+<span class="sourceLineNo">437</span><a id="line.437">         * Multiline line (block) comments (start: «/*», stop: «*​/»)</a>
+<span class="sourceLineNo">438</span><a id="line.438">         * Single line comments    (start: «--», stop: «\n»)</a>
+<span class="sourceLineNo">439</span><a id="line.439">         *</a>
+<span class="sourceLineNo">440</span><a id="line.440">         * @param   sql a SQL string with comments.</a>
+<span class="sourceLineNo">441</span><a id="line.441">         * @return  a SQL string without comments</a>
+<span class="sourceLineNo">442</span><a id="line.442">         */</a>
+<span class="sourceLineNo">443</span><a id="line.443">        static String stripComments(String sql) {</a>
+<span class="sourceLineNo">444</span><a id="line.444">                sql = stripBlockComments(sql); // Strip block comments (start: «/*» stop: «*​/»)</a>
+<span class="sourceLineNo">445</span><a id="line.445">                sql = stripLineComments(sql);  // Strip line comments (start: «--», stop: «\n»)</a>
+<span class="sourceLineNo">446</span><a id="line.446">                return sql;</a>
+<span class="sourceLineNo">447</span><a id="line.447">        }</a>
+<span class="sourceLineNo">448</span><a id="line.448"></a>
+<span class="sourceLineNo">449</span><a id="line.449">        /**</a>
+<span class="sourceLineNo">450</span><a id="line.450">         * Remove the comments from SQL statement, if exists.</a>
+<span class="sourceLineNo">451</span><a id="line.451">         * Multiline line (block) comments (start: «/*», stop: «*​/»)</a>
+<span class="sourceLineNo">452</span><a id="line.452">         * Single line comments    (start: «--», stop: «\n»)</a>
+<span class="sourceLineNo">453</span><a id="line.453">         *</a>
+<span class="sourceLineNo">454</span><a id="line.454">         * @param   sql a SQL string with comments.</a>
+<span class="sourceLineNo">455</span><a id="line.455">         * @return  a SQL string without comments</a>
+<span class="sourceLineNo">456</span><a id="line.456">         */</a>
+<span class="sourceLineNo">457</span><a id="line.457">        private static String stripLineComments(String sql) {</a>
+<span class="sourceLineNo">458</span><a id="line.458">                // Strip line comments (start: «--», stop: «\n»)</a>
+<span class="sourceLineNo">459</span><a id="line.459">                while (true) {</a>
+<span class="sourceLineNo">460</span><a id="line.460">                        int offset = indexOf(sql, SINGLE_LINE_COMMENT_START);</a>
+<span class="sourceLineNo">461</span><a id="line.461">                        if (offset == -1)</a>
+<span class="sourceLineNo">462</span><a id="line.462">                                break;</a>
+<span class="sourceLineNo">463</span><a id="line.463">                        int pos2 = sql.indexOf(SINGLE_LINE_COMMENT_STOP, offset);</a>
+<span class="sourceLineNo">464</span><a id="line.464">                        if (pos2 == -1)</a>
+<span class="sourceLineNo">465</span><a id="line.465">                                sql = sql.substring(0, offset);</a>
+<span class="sourceLineNo">466</span><a id="line.466">                        else</a>
+<span class="sourceLineNo">467</span><a id="line.467">                                sql = sql.substring(0, offset) + sql.substring(pos2);</a>
+<span class="sourceLineNo">468</span><a id="line.468">                }</a>
+<span class="sourceLineNo">469</span><a id="line.469">                return sql.trim();</a>
+<span class="sourceLineNo">470</span><a id="line.470">        }</a>
+<span class="sourceLineNo">471</span><a id="line.471"></a>
+<span class="sourceLineNo">472</span><a id="line.472">        /**</a>
+<span class="sourceLineNo">473</span><a id="line.473">         * Remove the comments from SQL statement, if exists.</a>
+<span class="sourceLineNo">474</span><a id="line.474">         * Multiline line (block) comments (start: «/*», stop: «*​/»)</a>
+<span class="sourceLineNo">475</span><a id="line.475">         * Single line comments    (start: «--», stop: «\n»)</a>
+<span class="sourceLineNo">476</span><a id="line.476">         *</a>
+<span class="sourceLineNo">477</span><a id="line.477">         * @param   sql a SQL string with comments.</a>
+<span class="sourceLineNo">478</span><a id="line.478">         * @return  a SQL string without comments</a>
+<span class="sourceLineNo">479</span><a id="line.479">         */</a>
+<span class="sourceLineNo">480</span><a id="line.480">        private static String stripBlockComments(String sql) {</a>
+<span class="sourceLineNo">481</span><a id="line.481">                // Strip block comments (start: «/*» stop: «*​/»)</a>
+<span class="sourceLineNo">482</span><a id="line.482">                while (true) {</a>
+<span class="sourceLineNo">483</span><a id="line.483">                        int offset = indexOf(sql, MULTI_LINE_COMMENT_START);</a>
+<span class="sourceLineNo">484</span><a id="line.484">                        if (offset == -1)</a>
+<span class="sourceLineNo">485</span><a id="line.485">                                break;</a>
+<span class="sourceLineNo">486</span><a id="line.486">                        int pos2 = sql.indexOf(MULTI_LINE_COMMENT_STOP, offset);</a>
+<span class="sourceLineNo">487</span><a id="line.487">                        sql = sql.substring(0, offset) + sql.substring(pos2 + 2);</a>
+<span class="sourceLineNo">488</span><a id="line.488">                }</a>
+<span class="sourceLineNo">489</span><a id="line.489">                return sql.trim();</a>
+<span class="sourceLineNo">490</span><a id="line.490">        }</a>
+<span class="sourceLineNo">491</span><a id="line.491"></a>
+<span class="sourceLineNo">492</span><a id="line.492">        /**</a>
+<span class="sourceLineNo">493</span><a id="line.493">         * Process SQL statement</a>
+<span class="sourceLineNo">494</span><a id="line.494">         *</a>
+<span class="sourceLineNo">495</span><a id="line.495">         * @param sql - SQL statement</a>
+<span class="sourceLineNo">496</span><a id="line.496">         * @return    - processed SQL statement</a>
+<span class="sourceLineNo">497</span><a id="line.497">         */</a>
+<span class="sourceLineNo">498</span><a id="line.498">        public static String processStatement(String sql) {</a>
+<span class="sourceLineNo">499</span><a id="line.499">                sql = sql.trim();</a>
+<span class="sourceLineNo">500</span><a id="line.500">                while (sql.endsWith(STATEMENT_SEPARATOR)) // remove trailing separator(s)</a>
+<span class="sourceLineNo">501</span><a id="line.501">                        sql = sql.substring(0, sql.length() - 1).trim();</a>
+<span class="sourceLineNo">502</span><a id="line.502">                sql = stripComments(sql).trim();</a>
+<span class="sourceLineNo">503</span><a id="line.503">                StringBuilder sb    = new StringBuilder();</a>
+<span class="sourceLineNo">504</span><a id="line.504">                String[]      lines = sql.split("\n");</a>
+<span class="sourceLineNo">505</span><a id="line.505">                for (int i = 0; i &lt; lines.length; i++)</a>
+<span class="sourceLineNo">506</span><a id="line.506">                        sb.append(' ' + lines[i].trim() + '\n');</a>
+<span class="sourceLineNo">507</span><a id="line.507">                return sb.toString().trim();</a>
+<span class="sourceLineNo">508</span><a id="line.508">        }</a>
+<span class="sourceLineNo">509</span><a id="line.509"></a>
+<span class="sourceLineNo">510</span><a id="line.510">        /**</a>
+<span class="sourceLineNo">511</span><a id="line.511">         * Parse named prepared statement and return parameter name to index map and</a>
+<span class="sourceLineNo">512</span><a id="line.512">         * replace host variables with '?' character to provide standard prepared statement form</a>
+<span class="sourceLineNo">513</span><a id="line.513">         * </a>
+<span class="sourceLineNo">514</span><a id="line.514">         * @param sql       - named prepared statement</a>
+<span class="sourceLineNo">515</span><a id="line.515">         * @param resultSQL - standard prepared statement</a>
+<span class="sourceLineNo">516</span><a id="line.516">         * @return            map parameter name to index (indexes starts from 1) </a>
+<span class="sourceLineNo">517</span><a id="line.517">         */</a>
+<span class="sourceLineNo">518</span><a id="line.518">        public static Map&lt;String /* name */, List&lt;Integer /* index */&gt;&gt; parseNamedPreparedStatement(String sql, StringBuilder resultSQL) {</a>
+<span class="sourceLineNo">519</span><a id="line.519">                Map&lt;String /* name */, List&lt;Integer /* index */&gt;&gt; map = new LinkedHashMap&lt;&gt;();</a>
+<span class="sourceLineNo">520</span><a id="line.520"></a>
+<span class="sourceLineNo">521</span><a id="line.521">                ParsedSql psql = NamedParameterUtils.parseSqlStatement(sql);</a>
+<span class="sourceLineNo">522</span><a id="line.522">                resultSQL.append(NamedParameterUtils.parseSqlStatementIntoString(sql));</a>
+<span class="sourceLineNo">523</span><a id="line.523"></a>
+<span class="sourceLineNo">524</span><a id="line.524">                MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();</a>
+<span class="sourceLineNo">525</span><a id="line.525">                List&lt;SqlParameter&gt;    params                = NamedParameterUtils.buildSqlParameterList(psql, mapSqlParameterSource);</a>
+<span class="sourceLineNo">526</span><a id="line.526">                //              </a>
+<span class="sourceLineNo">527</span><a id="line.527">                for (int i = 0; i &lt; params.size(); i++) {</a>
+<span class="sourceLineNo">528</span><a id="line.528">                        String name = params.get(i).getName();</a>
+<span class="sourceLineNo">529</span><a id="line.529"></a>
+<span class="sourceLineNo">530</span><a id="line.530">                        List&lt;Integer /* index */&gt; indexes = map.get(name);</a>
+<span class="sourceLineNo">531</span><a id="line.531">                        if (indexes == null) {</a>
+<span class="sourceLineNo">532</span><a id="line.532">                                indexes = new ArrayList&lt;&gt;();</a>
+<span class="sourceLineNo">533</span><a id="line.533">                                map.put(name, indexes);</a>
+<span class="sourceLineNo">534</span><a id="line.534">                        }</a>
+<span class="sourceLineNo">535</span><a id="line.535">                        indexes.add(i + 1);</a>
+<span class="sourceLineNo">536</span><a id="line.536">                }</a>
+<span class="sourceLineNo">537</span><a id="line.537">                return map;</a>
+<span class="sourceLineNo">538</span><a id="line.538">        }</a>
+<span class="sourceLineNo">539</span><a id="line.539"></a>
+<span class="sourceLineNo">540</span><a id="line.540">        /**</a>
+<span class="sourceLineNo">541</span><a id="line.541">         * Parse SQL script by splitting it on SQL statements</a>
+<span class="sourceLineNo">542</span><a id="line.542">         * Standard semicolon character «;» is used as statement separator.</a>
+<span class="sourceLineNo">543</span><a id="line.543">         *</a>
+<span class="sourceLineNo">544</span><a id="line.544">         * This method also:</a>
+<span class="sourceLineNo">545</span><a id="line.545">         * - compress row(s) of each SQL statement by removing</a>
+<span class="sourceLineNo">546</span><a id="line.546">         * ambiguous  trailing white spaces characters.</a>
+<span class="sourceLineNo">547</span><a id="line.547">         * - remove trailing statement separator «;»</a>
+<span class="sourceLineNo">548</span><a id="line.548">         *</a>
+<span class="sourceLineNo">549</span><a id="line.549">         * @param sqlScript - SQL script to parse</a>
+<span class="sourceLineNo">550</span><a id="line.550">         * @param list      - list of all presented in script SQL statements (output parameter)</a>
+<span class="sourceLineNo">551</span><a id="line.551">         * @throws IOException </a>
+<span class="sourceLineNo">552</span><a id="line.552">         */</a>
+<span class="sourceLineNo">553</span><a id="line.553">        private static void readSqlScriptToList(String sqlScript, List&lt;String /* SQL statements */&gt; list) throws IOException {</a>
+<span class="sourceLineNo">554</span><a id="line.554">                try (ScriptReader scriptReader = new ScriptReader(new StringReader(sqlScript))) {</a>
+<span class="sourceLineNo">555</span><a id="line.555">                        while (true) {</a>
+<span class="sourceLineNo">556</span><a id="line.556">                                String stat = scriptReader.readStatement();</a>
+<span class="sourceLineNo">557</span><a id="line.557">                                if (stat == null)</a>
+<span class="sourceLineNo">558</span><a id="line.558">                                        break;</a>
+<span class="sourceLineNo">559</span><a id="line.559">                                stat = stat.trim();</a>
+<span class="sourceLineNo">560</span><a id="line.560">                                stat = stripComments(stat).trim();</a>
+<span class="sourceLineNo">561</span><a id="line.561">                                if (!stat.isEmpty())</a>
+<span class="sourceLineNo">562</span><a id="line.562">                                        list.add(stat);</a>
+<span class="sourceLineNo">563</span><a id="line.563">                        }</a>
+<span class="sourceLineNo">564</span><a id="line.564">                }</a>
+<span class="sourceLineNo">565</span><a id="line.565"></a>
+<span class="sourceLineNo">566</span><a id="line.566">        }</a>
+<span class="sourceLineNo">567</span><a id="line.567"></a>
+<span class="sourceLineNo">568</span><a id="line.568">        /**</a>
+<span class="sourceLineNo">569</span><a id="line.569">         * Recursive method to process "INCLUDE SCRIPT FILE" statement</a>
+<span class="sourceLineNo">570</span><a id="line.570">         *</a>
+<span class="sourceLineNo">571</span><a id="line.571">         * @param path       - path to SQL script to parse</a>
+<span class="sourceLineNo">572</span><a id="line.572">         * @param list       - list of all presented in script SQL statements with injected includes (output parameter)</a>
+<span class="sourceLineNo">573</span><a id="line.573">         * @throws IOException</a>
+<span class="sourceLineNo">574</span><a id="line.574">         */</a>
+<span class="sourceLineNo">575</span><a id="line.575">        private static void processIncludes(Path path, List&lt;String /* SQL statements */&gt; list) throws IOException {</a>
+<span class="sourceLineNo">576</span><a id="line.576">                List&lt;String /* SQL statements */&gt; singleFileList = new ArrayList&lt;&gt;();</a>
+<span class="sourceLineNo">577</span><a id="line.577">                readSqlScriptToList(StringUtils.readAsText(path), singleFileList);</a>
+<span class="sourceLineNo">578</span><a id="line.578"></a>
+<span class="sourceLineNo">579</span><a id="line.579">                for (String statement : singleFileList) {</a>
+<span class="sourceLineNo">580</span><a id="line.580">                        String statementUpperCase = statement.toUpperCase(Locale.ENGLISH);</a>
+<span class="sourceLineNo">581</span><a id="line.581">                        if (statementUpperCase.startsWith(SPECIAL_STATEMENT_INCLUDE)) {</a>
+<span class="sourceLineNo">582</span><a id="line.582">                                List&lt;String&gt; fileNames = new ParseStmtInclude().parse(statement).fileNames;</a>
+<span class="sourceLineNo">583</span><a id="line.583">                                for (String fileName : fileNames) {</a>
+<span class="sourceLineNo">584</span><a id="line.584">                                        if (fileName.startsWith("/"))</a>
+<span class="sourceLineNo">585</span><a id="line.585">                                                path = Paths.get(fileName);</a>
+<span class="sourceLineNo">586</span><a id="line.586">                                        else</a>
+<span class="sourceLineNo">587</span><a id="line.587">                                                path = Paths.get(path.getParent().toString(), fileName);</a>
+<span class="sourceLineNo">588</span><a id="line.588">                                        if (Files.exists(path))</a>
+<span class="sourceLineNo">589</span><a id="line.589">                                                processIncludes(path, list); // recursive call</a>
+<span class="sourceLineNo">590</span><a id="line.590">                                }</a>
+<span class="sourceLineNo">591</span><a id="line.591">                        } else</a>
+<span class="sourceLineNo">592</span><a id="line.592">                                list.add(statement);</a>
+<span class="sourceLineNo">593</span><a id="line.593">                }</a>
+<span class="sourceLineNo">594</span><a id="line.594">        }</a>
+<span class="sourceLineNo">595</span><a id="line.595"></a>
+<span class="sourceLineNo">596</span><a id="line.596">        /**</a>
+<span class="sourceLineNo">597</span><a id="line.597">         * Read 'init.sql' file record by record and divide it by instance name to map</a>
+<span class="sourceLineNo">598</span><a id="line.598">         *</a>
+<span class="sourceLineNo">599</span><a id="line.599">         * @param path</a>
+<span class="sourceLineNo">600</span><a id="line.600">         * @param map</a>
+<span class="sourceLineNo">601</span><a id="line.601">         * @throws IOException</a>
+<span class="sourceLineNo">602</span><a id="line.602">         */</a>
+<span class="sourceLineNo">603</span><a id="line.603">        private static void separateSqlFile(Path path, List&lt;String /* SQL statements */&gt; list, Map&lt;String /* connection name */, List&lt;String /* SQL statements */&gt;&gt; map, Map&lt;String /* connection name */, String /* parent directory */&gt; parentDirectoryMap) throws IOException {</a>
+<span class="sourceLineNo">604</span><a id="line.604">                String       instanceName = null;</a>
+<span class="sourceLineNo">605</span><a id="line.605">                List&lt;String&gt; listBuffer   = null;</a>
+<span class="sourceLineNo">606</span><a id="line.606">                for (String statement : list) {</a>
+<span class="sourceLineNo">607</span><a id="line.607">                        String canonizedStatement = canonizeSql(statement);</a>
+<span class="sourceLineNo">608</span><a id="line.608">                        if (canonizedStatement.startsWith(SPECIAL_STATEMENT_CONNECT_TO)) {</a>
+<span class="sourceLineNo">609</span><a id="line.609">                                StmtConnectTo stmtConnectTo = new ParseStmtConnectTo().parse(null, statement);</a>
+<span class="sourceLineNo">610</span><a id="line.610">                                instanceName = stmtConnectTo.instanceName;</a>
+<span class="sourceLineNo">611</span><a id="line.611">                                listBuffer   = new ArrayList&lt;&gt;();</a>
+<span class="sourceLineNo">612</span><a id="line.612">                                listBuffer.add(statement);</a>
+<span class="sourceLineNo">613</span><a id="line.613">                                map.put(instanceName, listBuffer);</a>
+<span class="sourceLineNo">614</span><a id="line.614">                                parentDirectoryMap.put(instanceName, path.getParent().toString());</a>
+<span class="sourceLineNo">615</span><a id="line.615">                        } else if (canonizedStatement.startsWith(SPECIAL_STATEMENT_SWITCH_TO)) {</a>
+<span class="sourceLineNo">616</span><a id="line.616">                                StmtSwitchTo stmtSwitchTo = new ParseStmtSwitchTo().parse(null, statement);</a>
+<span class="sourceLineNo">617</span><a id="line.617">                                instanceName = stmtSwitchTo.instanceName;</a>
+<span class="sourceLineNo">618</span><a id="line.618">                                listBuffer   = map.get(instanceName);</a>
+<span class="sourceLineNo">619</span><a id="line.619">                                if (listBuffer == null)</a>
+<span class="sourceLineNo">620</span><a id="line.620">                                        throw new Error("CONNECT TO required prior " + statement);</a>
+<span class="sourceLineNo">621</span><a id="line.621">                        } else {</a>
+<span class="sourceLineNo">622</span><a id="line.622">                                if (listBuffer == null)</a>
+<span class="sourceLineNo">623</span><a id="line.623">                                        throw new Error("CONNECT TO required prior " + statement);</a>
+<span class="sourceLineNo">624</span><a id="line.624">                                listBuffer.add(statement);</a>
+<span class="sourceLineNo">625</span><a id="line.625">                        }</a>
+<span class="sourceLineNo">626</span><a id="line.626">                }</a>
+<span class="sourceLineNo">627</span><a id="line.627">        }</a>
+<span class="sourceLineNo">628</span><a id="line.628"></a>
+<span class="sourceLineNo">629</span><a id="line.629">        /**</a>
+<span class="sourceLineNo">630</span><a id="line.630">         * Iterate directory recursive, find 'init.sql' files, and process them.</a>
+<span class="sourceLineNo">631</span><a id="line.631">         *</a>
+<span class="sourceLineNo">632</span><a id="line.632">         * @param path</a>
+<span class="sourceLineNo">633</span><a id="line.633">         * @param sqlStatementsMap</a>
+<span class="sourceLineNo">634</span><a id="line.634">         * @throws IOException</a>
+<span class="sourceLineNo">635</span><a id="line.635">         */</a>
+<span class="sourceLineNo">636</span><a id="line.636">        public static void processInitSqlFiles(File file, Map&lt;String /* connection name */, List&lt;String /* SQL statements */&gt;&gt; sqlStatementsMap, Map&lt;String /* connection name */, String /* parent directory */&gt; parentDirectoryMap) throws IOException {</a>
+<span class="sourceLineNo">637</span><a id="line.637">                if (file.isDirectory()) {</a>
+<span class="sourceLineNo">638</span><a id="line.638">                        File[] files = file.listFiles();</a>
+<span class="sourceLineNo">639</span><a id="line.639">                        if (files != null)</a>
+<span class="sourceLineNo">640</span><a id="line.640">                                for (File f : files)</a>
+<span class="sourceLineNo">641</span><a id="line.641">                                        processInitSqlFiles(f, sqlStatementsMap, parentDirectoryMap);</a>
+<span class="sourceLineNo">642</span><a id="line.642">                } else {</a>
+<span class="sourceLineNo">643</span><a id="line.643">                        String fileName = file.getName();</a>
+<span class="sourceLineNo">644</span><a id="line.644">                        if (fileName.equals(INIT_SQL_FILE_EXT) || fileName.endsWith('.' + INIT_SQL_FILE_EXT))</a>
+<span class="sourceLineNo">645</span><a id="line.645">                                processInitSqlFile(file.toPath(), sqlStatementsMap, parentDirectoryMap);</a>
+<span class="sourceLineNo">646</span><a id="line.646">                }</a>
+<span class="sourceLineNo">647</span><a id="line.647">        }</a>
+<span class="sourceLineNo">648</span><a id="line.648"></a>
+<span class="sourceLineNo">649</span><a id="line.649">        /**</a>
+<span class="sourceLineNo">650</span><a id="line.650">         * Read 'init.sql' file, process 'includes', iterate record by record and divide it by instance name to map</a>
+<span class="sourceLineNo">651</span><a id="line.651">         *</a>
+<span class="sourceLineNo">652</span><a id="line.652">         * @param path</a>
+<span class="sourceLineNo">653</span><a id="line.653">         * @param sqlStatementsMap</a>
+<span class="sourceLineNo">654</span><a id="line.654">         * @throws IOException</a>
+<span class="sourceLineNo">655</span><a id="line.655">         */</a>
+<span class="sourceLineNo">656</span><a id="line.656">        private static void processInitSqlFile(Path path, Map&lt;String /* connection name */, List&lt;String /* SQL statements */&gt;&gt; sqlStatementsMap, Map&lt;String /* connection name */, String /* parent directory */&gt; parentDirectoryMap) throws IOException {</a>
+<span class="sourceLineNo">657</span><a id="line.657">                List&lt;String /* SQL statements */&gt; list = new ArrayList&lt;&gt;();</a>
+<span class="sourceLineNo">658</span><a id="line.658">                processIncludes(path, list);</a>
+<span class="sourceLineNo">659</span><a id="line.659">                separateSqlFile(path, list, sqlStatementsMap, parentDirectoryMap);</a>
+<span class="sourceLineNo">660</span><a id="line.660">        }</a>
+<span class="sourceLineNo">661</span><a id="line.661"></a>
+<span class="sourceLineNo">662</span><a id="line.662">        /**</a>
+<span class="sourceLineNo">663</span><a id="line.663">         * Canonize SQL statement for compare (startsWith)</a>
+<span class="sourceLineNo">664</span><a id="line.664">         * </a>
+<span class="sourceLineNo">665</span><a id="line.665">         * E.g. "connect to" - &gt; "CONNECTTO"</a>
+<span class="sourceLineNo">666</span><a id="line.666">         * @param sql</a>
+<span class="sourceLineNo">667</span><a id="line.667">         * @return</a>
+<span class="sourceLineNo">668</span><a id="line.668">         */</a>
+<span class="sourceLineNo">669</span><a id="line.669">        public static String canonizeSql(String sql) {</a>
+<span class="sourceLineNo">670</span><a id="line.670">                sql = stripComments(sql).trim();</a>
+<span class="sourceLineNo">671</span><a id="line.671">                sql = sql.replace("\n", "");</a>
+<span class="sourceLineNo">672</span><a id="line.672">                sql = sql.replace("\r", "");</a>
+<span class="sourceLineNo">673</span><a id="line.673">                sql = sql.replace("\t", "");</a>
+<span class="sourceLineNo">674</span><a id="line.674">                sql = sql.replace(" ", "");</a>
+<span class="sourceLineNo">675</span><a id="line.675">                sql = sql.toUpperCase(Locale.ENGLISH);</a>
+<span class="sourceLineNo">676</span><a id="line.676">                return sql;</a>
+<span class="sourceLineNo">677</span><a id="line.677">        }</a>
+<span class="sourceLineNo">678</span><a id="line.678">}</a>
+<span class="sourceLineNo">679</span><a id="line.679"></a>
+<span class="sourceLineNo">680</span><a id="line.680">/*</a>
+<span class="sourceLineNo">681</span><a id="line.681">Please contact FBSQL Team by E-Mail fbsql.team@gmail.com</a>
+<span class="sourceLineNo">682</span><a id="line.682">or visit https://fbsql.github.io if you need additional</a>
+<span class="sourceLineNo">683</span><a id="line.683">information or have any questions.</a>
+<span class="sourceLineNo">684</span><a id="line.684">*/</a>
+<span class="sourceLineNo">685</span><a id="line.685"></a>
+<span class="sourceLineNo">686</span><a id="line.686">/* EOF */</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</main>
+</body>
+</html>

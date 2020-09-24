@@ -1,0 +1,8 @@
+org.apache.hive.common.util
+org.fbsql_server
+org.fbsql.antlr4.generated
+org.fbsql.antlr4.parser
+org.fbsql.connection_pool
+org.fbsql.json.parser
+org.fbsql.servlet
+org.h2.util

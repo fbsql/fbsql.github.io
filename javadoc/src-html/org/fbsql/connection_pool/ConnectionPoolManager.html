@@ -1,0 +1,244 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<main role="main">
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span><a id="line.1">/*</a>
+<span class="sourceLineNo">002</span><a id="line.2">MIT License</a>
+<span class="sourceLineNo">003</span><a id="line.3"></a>
+<span class="sourceLineNo">004</span><a id="line.4">Copyright (c) 2020 FBSQL Team</a>
+<span class="sourceLineNo">005</span><a id="line.5"></a>
+<span class="sourceLineNo">006</span><a id="line.6">Permission is hereby granted, free of charge, to any person obtaining a copy</a>
+<span class="sourceLineNo">007</span><a id="line.7">of this software and associated documentation files (the "Software"), to deal</a>
+<span class="sourceLineNo">008</span><a id="line.8">in the Software without restriction, including without limitation the rights</a>
+<span class="sourceLineNo">009</span><a id="line.9">to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</a>
+<span class="sourceLineNo">010</span><a id="line.10">copies of the Software, and to permit persons to whom the Software is</a>
+<span class="sourceLineNo">011</span><a id="line.11">furnished to do so, subject to the following conditions:</a>
+<span class="sourceLineNo">012</span><a id="line.12"></a>
+<span class="sourceLineNo">013</span><a id="line.13">The above copyright notice and this permission notice shall be included in all</a>
+<span class="sourceLineNo">014</span><a id="line.14">copies or substantial portions of the Software.</a>
+<span class="sourceLineNo">015</span><a id="line.15"></a>
+<span class="sourceLineNo">016</span><a id="line.16">THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</a>
+<span class="sourceLineNo">017</span><a id="line.17">IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</a>
+<span class="sourceLineNo">018</span><a id="line.18">FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</a>
+<span class="sourceLineNo">019</span><a id="line.19">AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</a>
+<span class="sourceLineNo">020</span><a id="line.20">LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</a>
+<span class="sourceLineNo">021</span><a id="line.21">OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</a>
+<span class="sourceLineNo">022</span><a id="line.22">SOFTWARE.</a>
+<span class="sourceLineNo">023</span><a id="line.23"></a>
+<span class="sourceLineNo">024</span><a id="line.24">Home:   https://fbsql.github.io</a>
+<span class="sourceLineNo">025</span><a id="line.25">E-Mail: fbsql.team@gmail.com</a>
+<span class="sourceLineNo">026</span><a id="line.26">*/</a>
+<span class="sourceLineNo">027</span><a id="line.27"></a>
+<span class="sourceLineNo">028</span><a id="line.28">package org.fbsql.connection_pool;</a>
+<span class="sourceLineNo">029</span><a id="line.29"></a>
+<span class="sourceLineNo">030</span><a id="line.30">import java.io.FileNotFoundException;</a>
+<span class="sourceLineNo">031</span><a id="line.31">import java.io.IOException;</a>
+<span class="sourceLineNo">032</span><a id="line.32">import java.security.NoSuchAlgorithmException;</a>
+<span class="sourceLineNo">033</span><a id="line.33">import java.security.NoSuchProviderException;</a>
+<span class="sourceLineNo">034</span><a id="line.34">import java.sql.Connection;</a>
+<span class="sourceLineNo">035</span><a id="line.35">import java.sql.DriverManager;</a>
+<span class="sourceLineNo">036</span><a id="line.36">import java.sql.SQLException;</a>
+<span class="sourceLineNo">037</span><a id="line.37">import java.util.ArrayList;</a>
+<span class="sourceLineNo">038</span><a id="line.38">import java.util.Collection;</a>
+<span class="sourceLineNo">039</span><a id="line.39">import java.util.Collections;</a>
+<span class="sourceLineNo">040</span><a id="line.40">import java.util.Iterator;</a>
+<span class="sourceLineNo">041</span><a id="line.41">import java.util.List;</a>
+<span class="sourceLineNo">042</span><a id="line.42">import java.util.Properties;</a>
+<span class="sourceLineNo">043</span><a id="line.43"></a>
+<span class="sourceLineNo">044</span><a id="line.44">/**</a>
+<span class="sourceLineNo">045</span><a id="line.45"> * Connection pool used to connect to database using a pre-created set of reusable connections.</a>
+<span class="sourceLineNo">046</span><a id="line.46"> * When a new connection is required, an arbitrary available connection is retrieved from the pool.</a>
+<span class="sourceLineNo">047</span><a id="line.47"> * When connection closed, it is returned to connection pool for future use.</a>
+<span class="sourceLineNo">048</span><a id="line.48"> */</a>
+<span class="sourceLineNo">049</span><a id="line.49">public class ConnectionPoolManager implements AutoCloseable {</a>
+<span class="sourceLineNo">050</span><a id="line.50">        private int initialPoolSize;</a>
+<span class="sourceLineNo">051</span><a id="line.51">        private int maxPoolSize;</a>
+<span class="sourceLineNo">052</span><a id="line.52">        //</a>
+<span class="sourceLineNo">053</span><a id="line.53">        private String     jdbcUrl;</a>
+<span class="sourceLineNo">054</span><a id="line.54">        private String     jdbcUser;</a>
+<span class="sourceLineNo">055</span><a id="line.55">        private String     jdbcPassword;</a>
+<span class="sourceLineNo">056</span><a id="line.56">        private Properties jdbcProperties;</a>
+<span class="sourceLineNo">057</span><a id="line.57">        //</a>
+<span class="sourceLineNo">058</span><a id="line.58">        private List&lt;DbConnection&gt;       availableList;</a>
+<span class="sourceLineNo">059</span><a id="line.59">        private Collection&lt;DbConnection&gt; inUseList;</a>
+<span class="sourceLineNo">060</span><a id="line.60"></a>
+<span class="sourceLineNo">061</span><a id="line.61">        /**</a>
+<span class="sourceLineNo">062</span><a id="line.62">         * Constructs ConnectionPoolManager</a>
+<span class="sourceLineNo">063</span><a id="line.63">         * </a>
+<span class="sourceLineNo">064</span><a id="line.64">         * @param jdbcUrl</a>
+<span class="sourceLineNo">065</span><a id="line.65">         * @param jdbcUser</a>
+<span class="sourceLineNo">066</span><a id="line.66">         * @param jdbcPassword</a>
+<span class="sourceLineNo">067</span><a id="line.67">         * @param initialPoolSize</a>
+<span class="sourceLineNo">068</span><a id="line.68">         * @param maxPoolSize</a>
+<span class="sourceLineNo">069</span><a id="line.69">         */</a>
+<span class="sourceLineNo">070</span><a id="line.70">        public ConnectionPoolManager(String jdbcUrl, String jdbcUser, String jdbcPassword, Properties jdbcProperties, int initialPoolSize, int maxPoolSize) {</a>
+<span class="sourceLineNo">071</span><a id="line.71">                this.jdbcUrl         = jdbcUrl;</a>
+<span class="sourceLineNo">072</span><a id="line.72">                this.jdbcUser        = jdbcUser;</a>
+<span class="sourceLineNo">073</span><a id="line.73">                this.jdbcPassword    = jdbcPassword;</a>
+<span class="sourceLineNo">074</span><a id="line.74">                this.jdbcProperties  = jdbcProperties;</a>
+<span class="sourceLineNo">075</span><a id="line.75">                this.initialPoolSize = initialPoolSize;</a>
+<span class="sourceLineNo">076</span><a id="line.76">                this.maxPoolSize     = maxPoolSize;</a>
+<span class="sourceLineNo">077</span><a id="line.77">        }</a>
+<span class="sourceLineNo">078</span><a id="line.78"></a>
+<span class="sourceLineNo">079</span><a id="line.79">        /**</a>
+<span class="sourceLineNo">080</span><a id="line.80">         * Initialize ConnectionPoolManager</a>
+<span class="sourceLineNo">081</span><a id="line.81">         * </a>
+<span class="sourceLineNo">082</span><a id="line.82">         * @throws NoSuchAlgorithmException</a>
+<span class="sourceLineNo">083</span><a id="line.83">         * @throws NoSuchProviderException</a>
+<span class="sourceLineNo">084</span><a id="line.84">         * @throws SQLException</a>
+<span class="sourceLineNo">085</span><a id="line.85">         * @throws FileNotFoundException</a>
+<span class="sourceLineNo">086</span><a id="line.86">         * @throws IOException</a>
+<span class="sourceLineNo">087</span><a id="line.87">         */</a>
+<span class="sourceLineNo">088</span><a id="line.88">        public void init() throws NoSuchAlgorithmException, NoSuchProviderException, SQLException, FileNotFoundException, IOException {</a>
+<span class="sourceLineNo">089</span><a id="line.89">                inUseList     = Collections.synchronizedList(new ArrayList&lt;&gt;(initialPoolSize));</a>
+<span class="sourceLineNo">090</span><a id="line.90">                availableList = Collections.synchronizedList(new ArrayList&lt;&gt;(initialPoolSize));</a>
+<span class="sourceLineNo">091</span><a id="line.91">                for (int i = 0; i &lt; initialPoolSize; i++)</a>
+<span class="sourceLineNo">092</span><a id="line.92">                        addNewConnection();</a>
+<span class="sourceLineNo">093</span><a id="line.93">        }</a>
+<span class="sourceLineNo">094</span><a id="line.94"></a>
+<span class="sourceLineNo">095</span><a id="line.95">        /**</a>
+<span class="sourceLineNo">096</span><a id="line.96">         * Close ConnectionPoolManager</a>
+<span class="sourceLineNo">097</span><a id="line.97">         */</a>
+<span class="sourceLineNo">098</span><a id="line.98">        @Override</a>
+<span class="sourceLineNo">099</span><a id="line.99">        public void close() throws SQLException {</a>
+<span class="sourceLineNo">100</span><a id="line.100">                for (Iterator&lt;DbConnection&gt; iterator = inUseList.iterator(); iterator.hasNext();) {</a>
+<span class="sourceLineNo">101</span><a id="line.101">                        DbConnection dbConnection = iterator.next();</a>
+<span class="sourceLineNo">102</span><a id="line.102">                        dbConnection.getConnection().commit();</a>
+<span class="sourceLineNo">103</span><a id="line.103">                        availableList.add(dbConnection);</a>
+<span class="sourceLineNo">104</span><a id="line.104">                        iterator.remove();</a>
+<span class="sourceLineNo">105</span><a id="line.105">                }</a>
+<span class="sourceLineNo">106</span><a id="line.106">                for (Iterator&lt;DbConnection&gt; iterator = availableList.iterator(); iterator.hasNext();) {</a>
+<span class="sourceLineNo">107</span><a id="line.107">                        iterator.next().getConnection().close();</a>
+<span class="sourceLineNo">108</span><a id="line.108">                        iterator.remove();</a>
+<span class="sourceLineNo">109</span><a id="line.109">                }</a>
+<span class="sourceLineNo">110</span><a id="line.110">        }</a>
+<span class="sourceLineNo">111</span><a id="line.111"></a>
+<span class="sourceLineNo">112</span><a id="line.112">        /**</a>
+<span class="sourceLineNo">113</span><a id="line.113">         * Get available connection from pool</a>
+<span class="sourceLineNo">114</span><a id="line.114">         * </a>
+<span class="sourceLineNo">115</span><a id="line.115">         * @return</a>
+<span class="sourceLineNo">116</span><a id="line.116">         * @throws SQLException</a>
+<span class="sourceLineNo">117</span><a id="line.117">         */</a>
+<span class="sourceLineNo">118</span><a id="line.118">        public synchronized DbConnection getConnection() throws SQLException {</a>
+<span class="sourceLineNo">119</span><a id="line.119">                if (availableList.isEmpty())</a>
+<span class="sourceLineNo">120</span><a id="line.120">                        if (inUseList.size() &lt; maxPoolSize)</a>
+<span class="sourceLineNo">121</span><a id="line.121">                                addNewConnection();</a>
+<span class="sourceLineNo">122</span><a id="line.122">                        else // no available connections</a>
+<span class="sourceLineNo">123</span><a id="line.123">                                throw new SQLException("Connection pool size exceeds maximum value");</a>
+<span class="sourceLineNo">124</span><a id="line.124">                DbConnection dbConnection = availableList.remove(availableList.size() - 1);</a>
+<span class="sourceLineNo">125</span><a id="line.125">                inUseList.add(dbConnection);</a>
+<span class="sourceLineNo">126</span><a id="line.126">                return dbConnection;</a>
+<span class="sourceLineNo">127</span><a id="line.127">        }</a>
+<span class="sourceLineNo">128</span><a id="line.128"></a>
+<span class="sourceLineNo">129</span><a id="line.129">        /**</a>
+<span class="sourceLineNo">130</span><a id="line.130">         * Release connection</a>
+<span class="sourceLineNo">131</span><a id="line.131">         * </a>
+<span class="sourceLineNo">132</span><a id="line.132">         * @param dbConnection</a>
+<span class="sourceLineNo">133</span><a id="line.133">         * @return true if connection successfully released</a>
+<span class="sourceLineNo">134</span><a id="line.134">         * @throws SQLException</a>
+<span class="sourceLineNo">135</span><a id="line.135">         */</a>
+<span class="sourceLineNo">136</span><a id="line.136">        public boolean releaseConnection(DbConnection dbConnection) throws SQLException {</a>
+<span class="sourceLineNo">137</span><a id="line.137">                dbConnection.getConnection().commit();</a>
+<span class="sourceLineNo">138</span><a id="line.138">                availableList.add(dbConnection);</a>
+<span class="sourceLineNo">139</span><a id="line.139">                return inUseList.remove(dbConnection);</a>
+<span class="sourceLineNo">140</span><a id="line.140">        }</a>
+<span class="sourceLineNo">141</span><a id="line.141"></a>
+<span class="sourceLineNo">142</span><a id="line.142">        /**</a>
+<span class="sourceLineNo">143</span><a id="line.143">         * Add new connection to pool</a>
+<span class="sourceLineNo">144</span><a id="line.144">         * </a>
+<span class="sourceLineNo">145</span><a id="line.145">         * @throws SQLException</a>
+<span class="sourceLineNo">146</span><a id="line.146">         */</a>
+<span class="sourceLineNo">147</span><a id="line.147">        private void addNewConnection() throws SQLException {</a>
+<span class="sourceLineNo">148</span><a id="line.148">                Connection connection;</a>
+<span class="sourceLineNo">149</span><a id="line.149">                if (jdbcProperties != null &amp;&amp; !jdbcProperties.isEmpty())</a>
+<span class="sourceLineNo">150</span><a id="line.150">                        connection = DriverManager.getConnection(jdbcUrl, jdbcProperties);</a>
+<span class="sourceLineNo">151</span><a id="line.151">                else if (jdbcUser != null)</a>
+<span class="sourceLineNo">152</span><a id="line.152">                        connection = DriverManager.getConnection(jdbcUrl, jdbcUser, jdbcPassword);</a>
+<span class="sourceLineNo">153</span><a id="line.153">                else</a>
+<span class="sourceLineNo">154</span><a id="line.154">                        connection = DriverManager.getConnection(jdbcUrl);</a>
+<span class="sourceLineNo">155</span><a id="line.155"></a>
+<span class="sourceLineNo">156</span><a id="line.156">                connection.setAutoCommit(false);</a>
+<span class="sourceLineNo">157</span><a id="line.157"></a>
+<span class="sourceLineNo">158</span><a id="line.158">                DbConnection dbConnection = new DbConnection(connection);</a>
+<span class="sourceLineNo">159</span><a id="line.159">                availableList.add(dbConnection);</a>
+<span class="sourceLineNo">160</span><a id="line.160">        }</a>
+<span class="sourceLineNo">161</span><a id="line.161"></a>
+<span class="sourceLineNo">162</span><a id="line.162">}</a>
+<span class="sourceLineNo">163</span><a id="line.163"></a>
+<span class="sourceLineNo">164</span><a id="line.164">/*</a>
+<span class="sourceLineNo">165</span><a id="line.165">Please contact FBSQL Team by E-Mail fbsql.team@gmail.com</a>
+<span class="sourceLineNo">166</span><a id="line.166">or visit https://fbsql.github.io if you need additional</a>
+<span class="sourceLineNo">167</span><a id="line.167">information or have any questions.</a>
+<span class="sourceLineNo">168</span><a id="line.168">*/</a>
+<span class="sourceLineNo">169</span><a id="line.169"></a>
+<span class="sourceLineNo">170</span><a id="line.170">/* EOF */</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</main>
+</body>
+</html>

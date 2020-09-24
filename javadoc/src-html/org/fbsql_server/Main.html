@@ -1,0 +1,254 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../stylesheet.css" title="Style">
+</head>
+<body>
+<main role="main">
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span><a id="line.1">/*</a>
+<span class="sourceLineNo">002</span><a id="line.2">MIT License</a>
+<span class="sourceLineNo">003</span><a id="line.3"></a>
+<span class="sourceLineNo">004</span><a id="line.4">Copyright (c) 2020 FBSQL Team</a>
+<span class="sourceLineNo">005</span><a id="line.5"></a>
+<span class="sourceLineNo">006</span><a id="line.6">Permission is hereby granted, free of charge, to any person obtaining a copy</a>
+<span class="sourceLineNo">007</span><a id="line.7">of this software and associated documentation files (the "Software"), to deal</a>
+<span class="sourceLineNo">008</span><a id="line.8">in the Software without restriction, including without limitation the rights</a>
+<span class="sourceLineNo">009</span><a id="line.9">to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</a>
+<span class="sourceLineNo">010</span><a id="line.10">copies of the Software, and to permit persons to whom the Software is</a>
+<span class="sourceLineNo">011</span><a id="line.11">furnished to do so, subject to the following conditions:</a>
+<span class="sourceLineNo">012</span><a id="line.12"></a>
+<span class="sourceLineNo">013</span><a id="line.13">The above copyright notice and this permission notice shall be included in all</a>
+<span class="sourceLineNo">014</span><a id="line.14">copies or substantial portions of the Software.</a>
+<span class="sourceLineNo">015</span><a id="line.15"></a>
+<span class="sourceLineNo">016</span><a id="line.16">THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</a>
+<span class="sourceLineNo">017</span><a id="line.17">IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</a>
+<span class="sourceLineNo">018</span><a id="line.18">FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</a>
+<span class="sourceLineNo">019</span><a id="line.19">AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</a>
+<span class="sourceLineNo">020</span><a id="line.20">LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</a>
+<span class="sourceLineNo">021</span><a id="line.21">OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</a>
+<span class="sourceLineNo">022</span><a id="line.22">SOFTWARE.</a>
+<span class="sourceLineNo">023</span><a id="line.23"></a>
+<span class="sourceLineNo">024</span><a id="line.24">Home:   https://fbsql.github.io</a>
+<span class="sourceLineNo">025</span><a id="line.25">E-Mail: fbsql.team@gmail.com</a>
+<span class="sourceLineNo">026</span><a id="line.26">*/</a>
+<span class="sourceLineNo">027</span><a id="line.27"></a>
+<span class="sourceLineNo">028</span><a id="line.28">package org.fbsql_server;</a>
+<span class="sourceLineNo">029</span><a id="line.29"></a>
+<span class="sourceLineNo">030</span><a id="line.30">import java.io.File;</a>
+<span class="sourceLineNo">031</span><a id="line.31">import java.io.IOException;</a>
+<span class="sourceLineNo">032</span><a id="line.32">import java.nio.charset.StandardCharsets;</a>
+<span class="sourceLineNo">033</span><a id="line.33">import java.nio.file.FileVisitResult;</a>
+<span class="sourceLineNo">034</span><a id="line.34">import java.nio.file.Files;</a>
+<span class="sourceLineNo">035</span><a id="line.35">import java.nio.file.Path;</a>
+<span class="sourceLineNo">036</span><a id="line.36">import java.nio.file.Paths;</a>
+<span class="sourceLineNo">037</span><a id="line.37">import java.nio.file.SimpleFileVisitor;</a>
+<span class="sourceLineNo">038</span><a id="line.38">import java.nio.file.StandardCopyOption;</a>
+<span class="sourceLineNo">039</span><a id="line.39">import java.nio.file.attribute.BasicFileAttributes;</a>
+<span class="sourceLineNo">040</span><a id="line.40">import java.sql.Driver;</a>
+<span class="sourceLineNo">041</span><a id="line.41">import java.sql.DriverManager;</a>
+<span class="sourceLineNo">042</span><a id="line.42">import java.sql.SQLException;</a>
+<span class="sourceLineNo">043</span><a id="line.43">import java.util.HashMap;</a>
+<span class="sourceLineNo">044</span><a id="line.44">import java.util.List;</a>
+<span class="sourceLineNo">045</span><a id="line.45">import java.util.Map;</a>
+<span class="sourceLineNo">046</span><a id="line.46">import java.util.ServiceLoader;</a>
+<span class="sourceLineNo">047</span><a id="line.47"></a>
+<span class="sourceLineNo">048</span><a id="line.48">import org.fbsql.servlet.DbServlet;</a>
+<span class="sourceLineNo">049</span><a id="line.49">import org.fbsql.servlet.SqlParseUtils;</a>
+<span class="sourceLineNo">050</span><a id="line.50"></a>
+<span class="sourceLineNo">051</span><a id="line.51">public class Main {</a>
+<span class="sourceLineNo">052</span><a id="line.52"></a>
+<span class="sourceLineNo">053</span><a id="line.53">        /**</a>
+<span class="sourceLineNo">054</span><a id="line.54">         * Called from start.sh script</a>
+<span class="sourceLineNo">055</span><a id="line.55">         *</a>
+<span class="sourceLineNo">056</span><a id="line.56">         * @param args</a>
+<span class="sourceLineNo">057</span><a id="line.57">         * @throws IOException</a>
+<span class="sourceLineNo">058</span><a id="line.58">         */</a>
+<span class="sourceLineNo">059</span><a id="line.59">        public static void main(String[] args) throws IOException {</a>
+<span class="sourceLineNo">060</span><a id="line.60"></a>
+<span class="sourceLineNo">061</span><a id="line.61">                String fbsql_home_dir = System.getenv(DbServlet.FBSQL_HOME_DIR_ENV_NAME);</a>
+<span class="sourceLineNo">062</span><a id="line.62">                if (fbsql_home_dir == null)</a>
+<span class="sourceLineNo">063</span><a id="line.63">                        fbsql_home_dir = System.getProperty("user.home");</a>
+<span class="sourceLineNo">064</span><a id="line.64">                new File(fbsql_home_dir).mkdirs();</a>
+<span class="sourceLineNo">065</span><a id="line.65"></a>
+<span class="sourceLineNo">066</span><a id="line.66">                /* Process application settings directory (child of user home directory) */</a>
+<span class="sourceLineNo">067</span><a id="line.67">                String appDir        = fbsql_home_dir + "/fbsql";  // *** BRANDING ARTIFACT *** //</a>
+<span class="sourceLineNo">068</span><a id="line.68">                String logsDir       = appDir + "/logs";</a>
+<span class="sourceLineNo">069</span><a id="line.69">                String configDir     = appDir + "/config";</a>
+<span class="sourceLineNo">070</span><a id="line.70">                String fbsqlConfDir  = configDir + "/init";</a>
+<span class="sourceLineNo">071</span><a id="line.71">                String tomcatDir     = configDir + "/tomcat";</a>
+<span class="sourceLineNo">072</span><a id="line.72">                String tomcatConfDir = tomcatDir + "/conf";</a>
+<span class="sourceLineNo">073</span><a id="line.73">                String tomcatBinDir  = tomcatDir + "/bin";</a>
+<span class="sourceLineNo">074</span><a id="line.74">                String tomcatROOTDir = tomcatDir + "/webapps/ROOT";</a>
+<span class="sourceLineNo">075</span><a id="line.75">                String jreConfDir    = configDir + "/jre/conf";</a>
+<span class="sourceLineNo">076</span><a id="line.76"></a>
+<span class="sourceLineNo">077</span><a id="line.77">                Path appDirPath = Paths.get(appDir);</a>
+<span class="sourceLineNo">078</span><a id="line.78"></a>
+<span class="sourceLineNo">079</span><a id="line.79">                if (Files.exists(appDirPath) &amp;&amp; Files.isDirectory(appDirPath)) {</a>
+<span class="sourceLineNo">080</span><a id="line.80">                        /* Java Runtime Environment (JRE) configuration (optional) */</a>
+<span class="sourceLineNo">081</span><a id="line.81">                        Path jreConfDirPath = Paths.get(jreConfDir);</a>
+<span class="sourceLineNo">082</span><a id="line.82"></a>
+<span class="sourceLineNo">083</span><a id="line.83">                        if (Files.exists(jreConfDirPath) &amp;&amp; Files.isDirectory(jreConfDirPath))</a>
+<span class="sourceLineNo">084</span><a id="line.84">                                copyDir(jreConfDir, "jre/conf");</a>
+<span class="sourceLineNo">085</span><a id="line.85"></a>
+<span class="sourceLineNo">086</span><a id="line.86">                        Path tomcatConfDirPath = Paths.get(tomcatConfDir);</a>
+<span class="sourceLineNo">087</span><a id="line.87"></a>
+<span class="sourceLineNo">088</span><a id="line.88">                        /* Patch conf/logging.properties file */</a>
+<span class="sourceLineNo">089</span><a id="line.89">                        Path   loggingPropertiesPath    = Paths.get(tomcatConfDir, "logging.properties");</a>
+<span class="sourceLineNo">090</span><a id="line.90">                        String loggingPropertiesContent = new String(Files.readAllBytes(loggingPropertiesPath), StandardCharsets.UTF_8);</a>
+<span class="sourceLineNo">091</span><a id="line.91">                        loggingPropertiesContent = loggingPropertiesContent.replace("${catalina.base}/logs", logsDir);</a>
+<span class="sourceLineNo">092</span><a id="line.92">                        Files.write(loggingPropertiesPath, loggingPropertiesContent.getBytes(StandardCharsets.UTF_8));</a>
+<span class="sourceLineNo">093</span><a id="line.93"></a>
+<span class="sourceLineNo">094</span><a id="line.94">                        /* Patch conf/server.xml file */</a>
+<span class="sourceLineNo">095</span><a id="line.95">                        Path   serverXmlPath    = Paths.get(tomcatConfDir, "server.xml");</a>
+<span class="sourceLineNo">096</span><a id="line.96">                        String serverXmlContent = new String(Files.readAllBytes(serverXmlPath), StandardCharsets.UTF_8);</a>
+<span class="sourceLineNo">097</span><a id="line.97">                        serverXmlContent = serverXmlContent.replace("directory=\"logs\"", "directory=" + '"' + logsDir + '"');</a>
+<span class="sourceLineNo">098</span><a id="line.98">                        Files.write(serverXmlPath, serverXmlContent.getBytes(StandardCharsets.UTF_8));</a>
+<span class="sourceLineNo">099</span><a id="line.99"></a>
+<span class="sourceLineNo">100</span><a id="line.100">                        /* setenv.sh */</a>
+<span class="sourceLineNo">101</span><a id="line.101">                        // copy setenv.sh if not exits from server to user home directory</a>
+<span class="sourceLineNo">102</span><a id="line.102">                        Path tomcatBinDirPath = Paths.get(tomcatBinDir);</a>
+<span class="sourceLineNo">103</span><a id="line.103">                        Path setenvPath       = Paths.get(tomcatBinDir, "setenv.sh");</a>
+<span class="sourceLineNo">104</span><a id="line.104">                        if (!Files.exists(setenvPath)) {</a>
+<span class="sourceLineNo">105</span><a id="line.105">                                Path serverSetenvPath = Paths.get("bin/setenv.sh");</a>
+<span class="sourceLineNo">106</span><a id="line.106">                                Files.copy(serverSetenvPath, tomcatBinDirPath.resolve(serverSetenvPath.getFileName()), StandardCopyOption.COPY_ATTRIBUTES);</a>
+<span class="sourceLineNo">107</span><a id="line.107">                        }</a>
+<span class="sourceLineNo">108</span><a id="line.108"></a>
+<span class="sourceLineNo">109</span><a id="line.109">                        /* Custom Apache Tomcat configuration (optional) */</a>
+<span class="sourceLineNo">110</span><a id="line.110">                        if (Files.exists(tomcatConfDirPath) &amp;&amp; Files.isDirectory(tomcatConfDirPath))</a>
+<span class="sourceLineNo">111</span><a id="line.111">                                copyDir(tomcatConfDir, "conf");</a>
+<span class="sourceLineNo">112</span><a id="line.112"></a>
+<span class="sourceLineNo">113</span><a id="line.113">                        /* public files index.html etc. (optional) */</a>
+<span class="sourceLineNo">114</span><a id="line.114">                        Path tomcatROOTDirPath = Paths.get(tomcatROOTDir);</a>
+<span class="sourceLineNo">115</span><a id="line.115">                        if (Files.exists(tomcatROOTDirPath) &amp;&amp; Files.isDirectory(tomcatROOTDirPath))</a>
+<span class="sourceLineNo">116</span><a id="line.116">                                copyDir(tomcatROOTDir, "webapps/ROOT");</a>
+<span class="sourceLineNo">117</span><a id="line.117">                }</a>
+<span class="sourceLineNo">118</span><a id="line.118"></a>
+<span class="sourceLineNo">119</span><a id="line.119">                System.out.println("    • Config directory: " + configDir);</a>
+<span class="sourceLineNo">120</span><a id="line.120">                System.out.println("    • Logs directory  : " + logsDir);</a>
+<span class="sourceLineNo">121</span><a id="line.121">                System.out.println("    • JDBC drivers:");</a>
+<span class="sourceLineNo">122</span><a id="line.122">                ServiceLoader&lt;Driver&gt; loadedDrivers = ServiceLoader.load(Driver.class);</a>
+<span class="sourceLineNo">123</span><a id="line.123">                for (Driver driver : loadedDrivers) {</a>
+<span class="sourceLineNo">124</span><a id="line.124">                        try {</a>
+<span class="sourceLineNo">125</span><a id="line.125">                                DriverManager.registerDriver(driver);</a>
+<span class="sourceLineNo">126</span><a id="line.126">                                String driverClassName = driver.getClass().getName();</a>
+<span class="sourceLineNo">127</span><a id="line.127">                                String driveName       = driver.toString();</a>
+<span class="sourceLineNo">128</span><a id="line.128">                                String s               = "      • " + driverClassName;</a>
+<span class="sourceLineNo">129</span><a id="line.129">                                if (!driveName.startsWith(driverClassName + "@")) // we print only meaningful name </a>
+<span class="sourceLineNo">130</span><a id="line.130">                                        s += " (" + driveName + ")";</a>
+<span class="sourceLineNo">131</span><a id="line.131">                                System.out.println(s);</a>
+<span class="sourceLineNo">132</span><a id="line.132">                        } catch (SQLException e) {</a>
+<span class="sourceLineNo">133</span><a id="line.133">                                // ignore</a>
+<span class="sourceLineNo">134</span><a id="line.134">                        }</a>
+<span class="sourceLineNo">135</span><a id="line.135">                }</a>
+<span class="sourceLineNo">136</span><a id="line.136">                System.out.println("    • Connectors:");</a>
+<span class="sourceLineNo">137</span><a id="line.137">                Path fbsqlConfDirPath = Paths.get(fbsqlConfDir);</a>
+<span class="sourceLineNo">138</span><a id="line.138"></a>
+<span class="sourceLineNo">139</span><a id="line.139">                Map&lt;String /* connection name */, List&lt;String /* SQL statements */&gt;&gt; initSqlMap         = new HashMap&lt;&gt;();</a>
+<span class="sourceLineNo">140</span><a id="line.140">                Map&lt;String /* connection name */, String /* parent directory */&gt;     parentDirectoryMap = new HashMap&lt;&gt;();</a>
+<span class="sourceLineNo">141</span><a id="line.141">                SqlParseUtils.processInitSqlFiles(new File(fbsqlConfDirPath.toString()), initSqlMap, parentDirectoryMap);</a>
+<span class="sourceLineNo">142</span><a id="line.142">                for (String /* connection name */ instanceName : initSqlMap.keySet())</a>
+<span class="sourceLineNo">143</span><a id="line.143">                        System.out.println("      • " + instanceName);</a>
+<span class="sourceLineNo">144</span><a id="line.144"></a>
+<span class="sourceLineNo">145</span><a id="line.145">                int instancesCount = initSqlMap.size();</a>
+<span class="sourceLineNo">146</span><a id="line.146">                if (instancesCount == 0)</a>
+<span class="sourceLineNo">147</span><a id="line.147">                        System.out.println("No instances found");</a>
+<span class="sourceLineNo">148</span><a id="line.148">                System.out.println();</a>
+<span class="sourceLineNo">149</span><a id="line.149">                System.out.println();</a>
+<span class="sourceLineNo">150</span><a id="line.150">        }</a>
+<span class="sourceLineNo">151</span><a id="line.151"></a>
+<span class="sourceLineNo">152</span><a id="line.152">        private static boolean copyDir(String src, String dest) throws IOException {</a>
+<span class="sourceLineNo">153</span><a id="line.153">                Path      sourcePath = Paths.get(src);  // source</a>
+<span class="sourceLineNo">154</span><a id="line.154">                Path      targetPath = Paths.get(dest); // target</a>
+<span class="sourceLineNo">155</span><a id="line.155">                boolean[] copied     = new boolean[1];</a>
+<span class="sourceLineNo">156</span><a id="line.156">                Files.walkFileTree(sourcePath, new SimpleFileVisitor&lt;Path&gt;() {</a>
+<span class="sourceLineNo">157</span><a id="line.157">                        @Override</a>
+<span class="sourceLineNo">158</span><a id="line.158">                        public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {</a>
+<span class="sourceLineNo">159</span><a id="line.159">                                Files.createDirectories(targetPath.resolve(sourcePath.relativize(dir)));</a>
+<span class="sourceLineNo">160</span><a id="line.160">                                return FileVisitResult.CONTINUE;</a>
+<span class="sourceLineNo">161</span><a id="line.161">                        }</a>
+<span class="sourceLineNo">162</span><a id="line.162"></a>
+<span class="sourceLineNo">163</span><a id="line.163">                        @Override</a>
+<span class="sourceLineNo">164</span><a id="line.164">                        public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {</a>
+<span class="sourceLineNo">165</span><a id="line.165">                                Files.copy(file, targetPath.resolve(sourcePath.relativize(file)), StandardCopyOption.REPLACE_EXISTING);</a>
+<span class="sourceLineNo">166</span><a id="line.166">                                copied[0] = true;</a>
+<span class="sourceLineNo">167</span><a id="line.167">                                return FileVisitResult.CONTINUE;</a>
+<span class="sourceLineNo">168</span><a id="line.168">                        }</a>
+<span class="sourceLineNo">169</span><a id="line.169">                });</a>
+<span class="sourceLineNo">170</span><a id="line.170">                return copied[0];</a>
+<span class="sourceLineNo">171</span><a id="line.171">        }</a>
+<span class="sourceLineNo">172</span><a id="line.172">}</a>
+<span class="sourceLineNo">173</span><a id="line.173"></a>
+<span class="sourceLineNo">174</span><a id="line.174">/*</a>
+<span class="sourceLineNo">175</span><a id="line.175">Please contact FBSQL Team by E-Mail fbsql.team@gmail.com</a>
+<span class="sourceLineNo">176</span><a id="line.176">or visit https://fbsql.github.io if you need additional</a>
+<span class="sourceLineNo">177</span><a id="line.177">information or have any questions.</a>
+<span class="sourceLineNo">178</span><a id="line.178">*/</a>
+<span class="sourceLineNo">179</span><a id="line.179"></a>
+<span class="sourceLineNo">180</span><a id="line.180">/* EOF */</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</main>
+</body>
+</html>
