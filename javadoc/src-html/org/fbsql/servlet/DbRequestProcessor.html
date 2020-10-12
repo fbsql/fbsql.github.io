@@ -152,7 +152,7 @@
 <span class="sourceLineNo">143</span><a id="line.143">        private static final String FUN_REMOTE_SESSION_ID                 = "REMOTE_SESSION_ID()";</a>
 <span class="sourceLineNo">144</span><a id="line.144">        private static final String FUN_REMOTE_SESSION_CREATION_TIME      = "REMOTE_SESSION_CREATION_TIME()";</a>
 <span class="sourceLineNo">145</span><a id="line.145">        private static final String FUN_REMOTE_SESSION_LAST_ACCESSED_TIME = "REMOTE_SESSION_LAST_ACCESSED_TIME()";</a>
-<span class="sourceLineNo">146</span><a id="line.146">        private static final String FUN_USER_INFO                         = "USER_INFO()";</a>
+<span class="sourceLineNo">146</span><a id="line.146">        private static final String FUN_REMOTE_USER_INFO                  = "REMOTE_USER_INFO()";</a>
 <span class="sourceLineNo">147</span><a id="line.147"></a>
 <span class="sourceLineNo">148</span><a id="line.148">        /* system constants (See JavaSctript class Constants in fbsql.js */</a>
 <span class="sourceLineNo">149</span><a id="line.149">        private static final String FBSQL_REMOTE_USER                       = "FBSQL_REMOTE_USER";</a>
@@ -160,7 +160,7 @@
 <span class="sourceLineNo">151</span><a id="line.151">        private static final String FBSQL_REMOTE_SESSION_ID                 = "FBSQL_REMOTE_SESSION_ID";</a>
 <span class="sourceLineNo">152</span><a id="line.152">        private static final String FBSQL_REMOTE_SESSION_CREATION_TIME      = "FBSQL_REMOTE_SESSION_CREATION_TIME";</a>
 <span class="sourceLineNo">153</span><a id="line.153">        private static final String FBSQL_REMOTE_SESSION_LAST_ACCESSED_TIME = "FBSQL_REMOTE_SESSION_LAST_ACCESSED_TIME";</a>
-<span class="sourceLineNo">154</span><a id="line.154">        private static final String FBSQL_USER_INFO                         = "FBSQL_USER_INFO";</a>
+<span class="sourceLineNo">154</span><a id="line.154">        private static final String FBSQL_REMOTE_USER_INFO                  = "FBSQL_REMOTE_USER_INFO";</a>
 <span class="sourceLineNo">155</span><a id="line.155"></a>
 <span class="sourceLineNo">156</span><a id="line.156">        private String        instanceName;</a>
 <span class="sourceLineNo">157</span><a id="line.157">        private String        instanceDirectory;</a>
@@ -484,7 +484,7 @@
 <span class="sourceLineNo">475</span><a id="line.475">                        preparedStatement = preparedStatement.replace(FUN_REMOTE_SESSION_ID, SQL_QUOTE_CHAR + session.getId() + SQL_QUOTE_CHAR);</a>
 <span class="sourceLineNo">476</span><a id="line.476">                        preparedStatement = preparedStatement.replace(FUN_REMOTE_SESSION_CREATION_TIME, Long.toString(session.getCreationTime()));</a>
 <span class="sourceLineNo">477</span><a id="line.477">                        preparedStatement = preparedStatement.replace(FUN_REMOTE_SESSION_LAST_ACCESSED_TIME, Long.toString(session.getLastAccessedTime()));</a>
-<span class="sourceLineNo">478</span><a id="line.478">                        preparedStatement = preparedStatement.replace(FUN_USER_INFO, userInfoJson == null ? SQL_NULL : SQL_QUOTE_CHAR + userInfoJson + SQL_QUOTE_CHAR);</a>
+<span class="sourceLineNo">478</span><a id="line.478">                        preparedStatement = preparedStatement.replace(FUN_REMOTE_USER_INFO, userInfoJson == null ? SQL_NULL : SQL_QUOTE_CHAR + userInfoJson + SQL_QUOTE_CHAR);</a>
 <span class="sourceLineNo">479</span><a id="line.479"></a>
 <span class="sourceLineNo">480</span><a id="line.480">                        //</a>
 <span class="sourceLineNo">481</span><a id="line.481">                        // Replace IN_ROLE() built-in function with value</a>
@@ -858,7 +858,7 @@
 <span class="sourceLineNo">849</span><a id="line.849">                                                                                                        ps.setLong(n, session.getCreationTime());</a>
 <span class="sourceLineNo">850</span><a id="line.850">                                                                                                else if (FBSQL_REMOTE_SESSION_LAST_ACCESSED_TIME.equals(pvalue))</a>
 <span class="sourceLineNo">851</span><a id="line.851">                                                                                                        ps.setLong(n, session.getLastAccessedTime());</a>
-<span class="sourceLineNo">852</span><a id="line.852">                                                                                                else if (FBSQL_USER_INFO.equals(pvalue))</a>
+<span class="sourceLineNo">852</span><a id="line.852">                                                                                                else if (FBSQL_REMOTE_USER_INFO.equals(pvalue))</a>
 <span class="sourceLineNo">853</span><a id="line.853">                                                                                                        ps.setString(n, userInfoJson);</a>
 <span class="sourceLineNo">854</span><a id="line.854">                                                                                                else</a>
 <span class="sourceLineNo">855</span><a id="line.855">                                                                                                        ps.setString(n, pvalue);</a>
